@@ -1,0 +1,133 @@
+:root {
+  --bg: #0f1419;
+  --panel: #171d25;
+  --border: #2a3441;
+  --text: #e7edf5;
+  --muted: #8b9bb0;
+  --ok: #3ecf8e;
+  --bad: #ff6b6b;
+  --warn: #f0b429;
+  --accent: #2f81f7;
+  --font: Consolas, "Cascadia Code", monospace;
+  --ui: "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 320px;
+  height: 340px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ui);
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 8px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.link {
+  all: unset;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.link:hover:not(:disabled) { color: var(--text); }
+.link:disabled { opacity: 0.35; cursor: default; }
+
+.row {
+  display: flex;
+  gap: 6px;
+}
+
+input {
+  flex: 1;
+  min-width: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: 13px var(--font);
+}
+
+input:focus {
+  outline: none;
+  border-color: #3d5a80;
+}
+
+button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: #222b36;
+  color: var(--text);
+  font: 600 12px var(--ui);
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button:hover:not(:disabled) {
+  border-color: #3d4d61;
+  background: #283240;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: #2563c7;
+  color: #fff;
+}
+
+button.primary:hover:not(:disabled) {
+  background: #3b8cff;
+}
+
+.status {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.status.running { color: var(--ok); }
+.status.error { color: var(--bad); }
+.status.warn { color: var(--warn); }
+
+.log {
+  flex: 1;
+  margin: 0;
+  padding: 8px 10px;
+  overflow: auto;
+  background: #121820;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: 11px/1.4 var(--font);
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #c5d0dc;
+}
+
+.log .ok { color: var(--ok); }
+.log .fail { color: var(--bad); }
+.log .meta { color: var(--muted); }

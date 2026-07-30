@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "Pinger",
+  "version": "1.6.0",
+  "description": "IP seç → Pingle / Tracert. 3 timeout sonrası cevap gelince Windows bildirimi.",
+  "permissions": [
+    "contextMenus",
+    "nativeMessaging",
+    "storage",
+    "tabs",
+    "notifications"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_title": "Pinger",
+    "default_popup": "action.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "pinger@local",
+      "strict_min_version": "121.0"
+    }
+  }
+}

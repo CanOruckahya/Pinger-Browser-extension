@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pinger</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="head">
+    <h1 id="title">Pinger</h1>
+    <button id="btnStop" class="link" type="button" disabled>Durdur</button>
+  </header>
+
+  <div class="row">
+    <input id="ip" type="text" placeholder="1.2.3.4" spellcheck="false" autocomplete="off" />
+    <button id="btnPing" class="primary" type="button">Pingle</button>
+    <button id="btnTrace" type="button">Tracert</button>
+  </div>
+
+  <div id="status" class="status">Hazır</div>
+  <pre id="log" class="log"></pre>
+
+  <script src="popup.js"></script>
+</body>
+</html>
