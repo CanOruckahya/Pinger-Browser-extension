@@ -114,6 +114,37 @@ h1 {
   background: rgba(62, 207, 142, 0.1);
 }
 
+.mode-toggle {
+  appearance: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font: 600 10.5px var(--ui);
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.mode-toggle:hover {
+  color: var(--text);
+  border-color: var(--info);
+}
+
+html.basic-mode, body.basic-mode {
+  width: 320px;
+  height: 320px;
+}
+
+body.basic-mode .badge,
+body.basic-mode #btnNotify,
+body.basic-mode .tabs,
+body.basic-mode #optRow,
+body.basic-mode #recentRow,
+body.basic-mode .stats,
+body.basic-mode .chart-card,
+body.basic-mode .log-bar {
+  display: none !important;
+}
+
 .tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

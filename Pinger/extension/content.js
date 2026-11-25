@@ -9,6 +9,7 @@
   let root = null;
   let running = false;
   let currentTool = "ping";
+  let uiMode = "basic";
   let stats = { sent: 0, lost: 0, rtts: [], samples: [] };
 
   function extractIp(text) {
@@ -101,6 +102,26 @@
           padding: 2px 6px;
         }
         .x:hover { color: #fff; }
+        .mode-toggle {
+          appearance: none;
+          background: #131a24;
+          border: 1px solid #253142;
+          border-radius: 999px;
+          color: #8a9bb2;
+          font: 600 10px "Segoe UI", system-ui, sans-serif;
+          padding: 2px 7px;
+          cursor: pointer;
+        }
+        .mode-toggle:hover { color: #e8eef7; border-color: #58a6ff; }
+        .panel.basic { width: 290px; }
+        .panel.basic .badge,
+        .panel.basic .tabs,
+        .panel.basic #portRow,
+        .panel.basic .stats-bar,
+        .panel.basic .chart-wrap,
+        .panel.basic #btnCopy,
+        .panel.basic #btnClear { display: none !important; }
+        .panel.basic .log { height: 155px; }
         .tabs {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
@@ -245,6 +266,7 @@
             <h1 class="title" id="title">Pinger</h1>
             <span class="badge">v2.0</span>
           </div>
+          <button class="mode-toggle" id="btnMode" type="button" title="Basic / Advanced arayüz geçişi">Advanced</button>
           <button class="x" id="btnClose" type="button" title="Kapat">×</button>
         </div>
 
@@ -429,6 +451,34 @@
     });
   }
 
+  function applyUiMode(mode) {
+    uiMode = mode === "advanced" ? "advanced" : "basic";
+    const isBasic = uiMode === "basic";
+    const panel = $("panel");
+    panel.classList.toggle("basic", isBasic);
+    $("btnMode").textContent = isBasic ? "Advanced" : "Basic";
+    $("btnRun").textContent = isBasic ? "Pingle" : "Başlat";
+    if (isBasic && !running) {
+      selectTool("ping");
+    }
+  }
+
+  function loadUiModeSetting() {
+    chrome.runtime
+      .sendMessage({ type: "GET_SETTINGS" })
+      .then((res) => {
+        const mode = res?.settings?.uiMode === "advanced" ? "advanced" : "basic";
+        if (currentTool !== "ping") {
+          applyUiMode("advanced");
+        } else {
+          applyUiMode(mode);
+        }
+      })
+      .catch(() => {
+        applyUiMode(currentTool !== "ping" ? "advanced" : "basic");
+      });
+  }
+
   const POS_KEY = "pinger-panel-pos";
 
   function loadPos() {
@@ -542,6 +592,11 @@
     restoreOrDefaultPos();
     if (ip) $("ip").value = ip;
     selectTool(tool || currentTool);
+    if (currentTool !== "ping") {
+      applyUiMode("advanced");
+    } else {
+      loadUiModeSetting();
+    }
     hideMenu();
     hideChip();
   }
@@ -605,6 +660,11 @@
     });
 
     $("btnClose").addEventListener("click", closePanel);
+    $("btnMode").addEventListener("click", () => {
+      const nextMode = uiMode === "basic" ? "advanced" : "basic";
+      applyUiMode(nextMode);
+      chrome.runtime.sendMessage({ type: "SAVE_SETTINGS", settings: { uiMode: nextMode } }).catch(() => {});
+    });
     $("btnRun").addEventListener("click", () => start(currentTool));
     $("btnStop").addEventListener("click", () => {
       chrome.runtime.sendMessage({ type: "STOP_NATIVE_PING" });

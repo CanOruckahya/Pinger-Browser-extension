@@ -6,6 +6,7 @@ const elDot = document.getElementById("statusDot");
 const elLog = document.getElementById("log");
 const btnRun = document.getElementById("btnRun");
 const btnStop = document.getElementById("btnStop");
+const btnMode = document.getElementById("btnMode");
 const btnNotify = document.getElementById("btnNotify");
 const btnTimestamp = document.getElementById("btnTimestamp");
 const btnCopy = document.getElementById("btnCopy");
@@ -45,6 +46,7 @@ let running = false;
 let pingCount = 0;
 let showTimestamp = false;
 let notifyEnabled = true;
+let uiMode = "basic";
 
 let stats = {
   sent: 0,
@@ -239,6 +241,21 @@ function selectPingCount(cnt) {
   }
 }
 
+function applyUiMode(mode) {
+  uiMode = mode === "advanced" ? "advanced" : "basic";
+  const isBasic = uiMode === "basic";
+  document.documentElement.classList.toggle("basic-mode", isBasic);
+  document.body.classList.toggle("basic-mode", isBasic);
+  if (btnMode) {
+    btnMode.textContent = isBasic ? "Advanced" : "Basic";
+    btnMode.title = isBasic ? "Gelişmiş arayüze geç" : "Sade (Basic) arayüze geç";
+  }
+  btnRun.textContent = isBasic ? "Pingle" : "Başlat";
+  if (isBasic && !running) {
+    selectTool("ping");
+  }
+}
+
 function renderRecent(targets) {
   recentRow.innerHTML = "";
   const list = (targets || []).slice(0, 6);
@@ -357,6 +374,14 @@ btnNotify.addEventListener("click", () => {
   saveSettings({ notify: notifyEnabled });
 });
 
+if (btnMode) {
+  btnMode.addEventListener("click", () => {
+    const nextMode = uiMode === "basic" ? "advanced" : "basic";
+    applyUiMode(nextMode);
+    saveSettings({ uiMode: nextMode });
+  });
+}
+
 btnCopy.addEventListener("click", async () => {
   const summary = `Hedef: ${elIp.value.trim()} | Paket/Kayıp: ${statLoss.textContent} | Ort: ${statAvg.textContent} | Min/Maks: ${statMinMax.textContent}`;
   const text = `${summary}\n${"-".repeat(48)}\n${elLog.innerText}`;
@@ -444,11 +469,13 @@ async function boot() {
   drawSparkline();
 
   const settingsRes = await chrome.runtime.sendMessage({ type: "GET_SETTINGS" }).catch(() => null);
+  let loadedMode = "basic";
   if (settingsRes?.settings) {
     const s = settingsRes.settings;
     showTimestamp = Boolean(s.showTimestamp);
     notifyEnabled = s.notify !== false;
     pingCount = Number(s.pingCount || 0);
+    loadedMode = s.uiMode === "advanced" ? "advanced" : "basic";
     if (s.defaultPorts) portsInput.value = s.defaultPorts;
     btnTimestamp.classList.toggle("active", showTimestamp);
     btnNotify.classList.toggle("active", notifyEnabled);
@@ -467,6 +494,10 @@ async function boot() {
     if (data?.lastError) setStatus(data.lastError, "error");
   }
 
+  if (tool !== "ping") {
+    loadedMode = "advanced";
+  }
+  applyUiMode(loadedMode);
   selectTool(tool);
 
   if (elIp.value && params.get("autostart") !== "0") {

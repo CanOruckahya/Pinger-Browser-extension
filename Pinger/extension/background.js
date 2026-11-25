@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS = {
   notify: true,
   pingCount: 0,
   defaultPorts: "80,443,22,3389,8080",
+  uiMode: "basic",
 };
 
 /** Chrome + Firefox: session yoksa local'e dus */
