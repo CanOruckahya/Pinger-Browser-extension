@@ -28,9 +28,15 @@ let failCount = 0;
 let wasDown = false;
 let watchEnabled = false;
 let notifyEnabled = true;
+let runSeq = 0;
+let currentRunId = 0;
 
 function send(obj) {
-  const json = Buffer.from(JSON.stringify(obj), "utf8");
+  const payload =
+    currentRunId > 0 && obj.runId === undefined
+      ? { ...obj, runId: currentRunId }
+      : obj;
+  const json = Buffer.from(JSON.stringify(payload), "utf8");
   const header = Buffer.alloc(4);
   header.writeUInt32LE(json.length, 0);
   process.stdout.write(Buffer.concat([header, json]));
@@ -76,61 +82,55 @@ $n.Dispose()
   }
 }
 
-function handleMetricWatch(ok) {
-  if (!watchEnabled) return;
+function handleMetricWatch(ok, runId) {
+  if (!watchEnabled || runId !== currentRunId) return;
   if (!ok) {
     failCount += 1;
     if (failCount === 3 && !wasDown) {
       wasDown = true;
-      send({ type: "down", target: watchTarget });
+      send({ type: "down", target: watchTarget, runId });
       showWinToast(watchTarget, "yanit vermiyor (3+ timeout)", "Warning");
     }
     return;
   }
   if (wasDown) {
-    send({ type: "recovered", target: watchTarget });
+    send({ type: "recovered", target: watchTarget, runId });
     showWinToast(watchTarget, "tekrar cevap vermeye basladi", "Info");
     wasDown = false;
   }
   failCount = 0;
 }
 
-function noteLine(line) {
-  if (!watchEnabled) return;
-  const lower = line.toLowerCase();
-  const ok =
-    lower.includes("reply from") ||
-    (lower.includes("ttl=") && (lower.includes("time=") || lower.includes("bytes=")));
-  const fail =
-    lower.includes("timed out") ||
-    lower.includes("unreachable") ||
-    lower.includes("general failure");
-
-  if (fail) {
-    handleMetricWatch(false);
-  } else if (ok) {
-    handleMetricWatch(true);
-  }
-}
-
 function stopChild() {
+  watchEnabled = false;
+  lineBuf = "";
   if (!child) return;
   const proc = child;
   child = null;
+  try {
+    if (proc.stdout) proc.stdout.removeAllListeners();
+  } catch (_) {}
+  try {
+    if (proc.stderr) proc.stderr.removeAllListeners();
+  } catch (_) {}
+  try {
+    proc.removeAllListeners();
+  } catch (_) {}
+  try {
+    proc.kill("SIGKILL");
+  } catch (_) {
+    try {
+      proc.kill();
+    } catch (_) {}
+  }
   try {
     if (process.platform === "win32" && proc.pid) {
       spawn("taskkill", ["/pid", String(proc.pid), "/T", "/F"], {
         windowsHide: true,
         stdio: "ignore",
       });
-    } else {
-      proc.kill();
     }
-  } catch (_) {
-    try {
-      proc.kill();
-    } catch (_) {}
-  }
+  } catch (_) {}
 }
 
 function validateTarget(raw) {
@@ -326,42 +326,45 @@ try{
 `.trim();
 }
 
-function processLine(line) {
-  if (!line.length) return;
+function processLine(line, runId) {
+  if (!line.length || runId !== currentRunId) return;
   if (line.startsWith("@@METRIC@@")) {
     try {
       const metric = JSON.parse(line.slice("@@METRIC@@".length));
-      send(metric);
-      handleMetricWatch(Boolean(metric.ok));
+      send({ ...metric, runId });
+      handleMetricWatch(Boolean(metric.ok), runId);
     } catch (_) {}
     return;
   }
-  send({ type: "line", text: line });
-  if (!watchEnabled) return;
-  // Metric olmayan yedek durumlar icin satir bazli kontrol yapma (@@METRIC@@ yoksa kullanilir)
+  send({ type: "line", text: line, runId });
 }
 
-function onStdout(chunk) {
+function onStdout(chunk, runId) {
+  if (runId !== currentRunId) return;
   lineBuf += chunk.toString("utf8");
   let idx;
   while ((idx = lineBuf.indexOf("\n")) >= 0) {
     const line = lineBuf.slice(0, idx).replace(/\r$/, "");
     lineBuf = lineBuf.slice(idx + 1);
-    processLine(line);
+    processLine(line, runId);
   }
 }
 
 function startTool(msg) {
   stopChild();
-  lineBuf = "";
   failCount = 0;
   wasDown = false;
 
   const target = validateTarget(msg.target);
   if (!target) {
-    send({ type: "error", message: "Geçersiz hedef (IP veya hostname girin)." });
+    currentRunId = 0;
+    send({ type: "error", message: "Geçersiz hedef (IP veya hostname girin).", runId: Number(msg.runId) || 0 });
     return;
   }
+
+  const incomingId = Number(msg.runId);
+  currentRunId = Number.isFinite(incomingId) && incomingId > 0 ? incomingId : ++runSeq;
+  const runId = currentRunId;
 
   const allowedTools = new Set(["ping", "tracert", "port", "dns"]);
   const tool = allowedTools.has(msg.tool) ? msg.tool : "ping";
@@ -375,7 +378,8 @@ function startTool(msg) {
   } else if (tool === "port") {
     const ports = parsePorts(msg.ports);
     if (ports.length === 0) {
-      send({ type: "error", message: "Geçerli port bulunamadı (1-65535)." });
+      currentRunId = 0;
+      send({ type: "error", message: "Geçerli port bulunamadı (1-65535).", runId });
       return;
     }
     script = buildPortScanScript(target, ports);
@@ -384,13 +388,14 @@ function startTool(msg) {
   } else {
     const count = normalizeCount(msg.count, msg.continuous);
     if (count === null) {
-      send({ type: "error", message: "Geçersiz paket sayısı (0-100)." });
+      currentRunId = 0;
+      send({ type: "error", message: "Geçersiz paket sayısı (0-100).", runId });
       return;
     }
     script = buildPingScript(target, count);
   }
 
-  child = spawn(
+  const proc = spawn(
     psExe(),
     ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
     {
@@ -398,26 +403,32 @@ function startTool(msg) {
       stdio: ["ignore", "pipe", "pipe"],
     }
   );
+  child = proc;
 
-  send({ type: "started", target, tool });
-  dbg(`started ${tool} ${target} pid=${child.pid}`);
+  send({ type: "started", target, tool, runId });
+  dbg(`started ${tool} ${target} pid=${proc.pid} runId=${runId}`);
 
-  child.stdout.on("data", onStdout);
-  child.stderr.on("data", (chunk) => {
+  proc.stdout.on("data", (chunk) => onStdout(chunk, runId));
+  proc.stderr.on("data", (chunk) => {
+    if (runId !== currentRunId) return;
     const text = chunk.toString("utf8").trim();
-    if (text) send({ type: "line", text });
+    if (text) send({ type: "line", text, runId });
   });
-  child.on("error", (err) => {
-    send({ type: "error", message: String(err.message || err) });
+  proc.on("error", (err) => {
+    if (runId !== currentRunId) return;
+    currentRunId = 0;
     child = null;
+    send({ type: "error", message: String(err.message || err), runId });
   });
-  child.on("close", (code) => {
+  proc.on("close", (code) => {
+    if (runId !== currentRunId) return;
     if (lineBuf.trim()) {
-      processLine(lineBuf.trim());
+      processLine(lineBuf.trim(), runId);
       lineBuf = "";
     }
-    send({ type: "stopped", code });
+    currentRunId = 0;
     child = null;
+    send({ type: "stopped", code, runId });
   });
 }
 
@@ -426,8 +437,10 @@ function handleMessage(msg) {
   if (msg.action === "start") {
     startTool(msg);
   } else if (msg.action === "stop") {
+    const stoppedId = currentRunId;
+    currentRunId = 0;
     stopChild();
-    send({ type: "stopped", code: -1 });
+    send({ type: "stopped", code: -1, runId: stoppedId });
   }
 }
 
@@ -452,6 +465,7 @@ process.stdin.on("data", (chunk) => {
 });
 
 process.stdin.on("end", () => {
+  currentRunId = 0;
   stopChild();
   process.exit(0);
 });

@@ -10,6 +10,8 @@
   let running = false;
   let currentTool = "ping";
   let uiMode = "basic";
+  let activeRunId = 0;
+  let userStopped = false;
   let stats = { sent: 0, lost: 0, rtts: [], samples: [] };
 
   function extractIp(text) {
@@ -597,6 +599,17 @@
     } else {
       loadUiModeSetting();
     }
+    if (!ip) {
+      chrome.runtime.sendMessage({ type: "GET_STATE" }).then((res) => {
+        if (res?.state?.running) {
+          userStopped = false;
+          activeRunId = res.state.runId || 0;
+          if (res.state.target) $("ip").value = res.state.target;
+          setRunning(true);
+          setStatus("Çalışıyor…", "running");
+        }
+      }).catch(() => {});
+    }
     hideMenu();
     hideChip();
   }
@@ -605,6 +618,8 @@
     if (!root) return;
     $("panel").classList.remove("open");
     if (running) {
+      userStopped = true;
+      activeRunId = 0;
       chrome.runtime.sendMessage({ type: "STOP_NATIVE_PING" }).catch(() => {});
       setRunning(false);
     }
@@ -633,6 +648,8 @@
         : `> ping ${target} -t`;
 
     appendLine(cmdLine, "meta");
+    userStopped = false;
+    activeRunId = 0;
     setRunning(true);
     setStatus("Çalışıyor…", "running");
 
@@ -648,6 +665,8 @@
       setRunning(false);
       setStatus(res?.error || "Native host hatası", "error");
       appendLine(res?.error || "Başlatılamadı", "fail");
+    } else if (res.runId) {
+      activeRunId = res.runId;
     }
   }
 
@@ -667,10 +686,12 @@
     });
     $("btnRun").addEventListener("click", () => start(currentTool));
     $("btnStop").addEventListener("click", () => {
-      chrome.runtime.sendMessage({ type: "STOP_NATIVE_PING" });
+      userStopped = true;
+      activeRunId = 0;
       setRunning(false);
       setStatus("Durduruldu", "warn");
       appendLine("[durduruldu]", "meta");
+      chrome.runtime.sendMessage({ type: "STOP_NATIVE_PING" }).catch(() => {});
     });
     $("btnClear").addEventListener("click", () => {
       $("log").innerHTML = "";
@@ -850,9 +871,26 @@
       ensureRoot();
       if (!$("panel").classList.contains("open")) return;
       const p = msg.payload;
+      if (p.type !== "stopped" && p.type !== "error") {
+        if (userStopped) return;
+        if (activeRunId && p.runId && p.runId !== activeRunId) return;
+      } else if (activeRunId && p.runId && p.runId !== activeRunId) {
+        return;
+      }
+
       if (p.type === "line") {
+        if (!running) {
+          activeRunId = p.runId || activeRunId;
+          setRunning(true);
+          setStatus("Çalışıyor…", "running");
+        }
         appendLine(p.text, classifyLine(p.text));
       } else if (p.type === "metric") {
+        if (!running) {
+          activeRunId = p.runId || activeRunId;
+          setRunning(true);
+          setStatus("Çalışıyor…", "running");
+        }
         stats.sent += 1;
         if (p.ok && typeof p.rtt === "number") {
           stats.rtts.push(p.rtt);
@@ -870,12 +908,17 @@
         setStatus(`${p.target} tekrar çevrimiçi`, "running");
         appendLine(`[KURTARILDI] ${p.target} tekrar yanıt vermeye başladı.`, "ok");
       } else if (p.type === "started") {
+        activeRunId = p.runId || activeRunId;
         setRunning(true);
         setStatus("Çalışıyor…", "running");
       } else if (p.type === "stopped") {
+        activeRunId = 0;
         setRunning(false);
-        setStatus("Tamamlandı", "warn");
+        if (!userStopped && !p.forced) {
+          setStatus("Tamamlandı", "warn");
+        }
       } else if (p.type === "error") {
+        activeRunId = 0;
         setRunning(false);
         setStatus(p.message || "Hata", "error");
         appendLine(p.message || "Hata", "fail");

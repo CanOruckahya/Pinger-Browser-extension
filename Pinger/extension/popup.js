@@ -47,6 +47,8 @@ let pingCount = 0;
 let showTimestamp = false;
 let notifyEnabled = true;
 let uiMode = "basic";
+let activeRunId = 0;
+let userStopped = false;
 
 let stats = {
   sent: 0,
@@ -311,6 +313,8 @@ async function start(nextTool) {
       : `> ping ${target} -n ${pingCount}`;
 
   appendLine(headerCmd, "meta");
+  userStopped = false;
+  activeRunId = 0;
   setRunning(true);
   setStatus("Çalışıyor…", "running");
 
@@ -331,14 +335,18 @@ async function start(nextTool) {
     setStatus(res?.error || "Native host hatası", "error");
     appendLine(res?.error || "Başlatılamadı", "fail");
     if (setupBanner) setupBanner.classList.remove("hidden");
+  } else if (res.runId) {
+    activeRunId = res.runId;
   }
 }
 
 async function stop() {
-  await chrome.runtime.sendMessage({ type: "STOP_NATIVE_PING" });
+  userStopped = true;
+  activeRunId = 0;
   setRunning(false);
   setStatus("Durduruldu", "warn");
   appendLine("[durduruldu]", "meta");
+  await chrome.runtime.sendMessage({ type: "STOP_NATIVE_PING" }).catch(() => {});
 }
 
 for (const tab of TAB_BTNS) {
@@ -424,11 +432,28 @@ chrome.runtime.onMessage.addListener((msg) => {
   }
   if (msg?.type === "NATIVE_OUTPUT" && msg.payload) {
     const p = msg.payload;
+    if (p.type !== "stopped" && p.type !== "error") {
+      if (userStopped) return;
+      if (activeRunId && p.runId && p.runId !== activeRunId) return;
+    } else if (activeRunId && p.runId && p.runId !== activeRunId) {
+      return;
+    }
+
     if (p.type === "line") {
       if (setupBanner) setupBanner.classList.add("hidden");
+      if (!running) {
+        activeRunId = p.runId || activeRunId;
+        setRunning(true);
+        setStatus("Çalışıyor…", "running");
+      }
       appendLine(p.text, classifyLine(p.text));
     } else if (p.type === "metric") {
       if (setupBanner) setupBanner.classList.add("hidden");
+      if (!running) {
+        activeRunId = p.runId || activeRunId;
+        setRunning(true);
+        setStatus("Çalışıyor…", "running");
+      }
       stats.sent += 1;
       if (p.ok && typeof p.rtt === "number") {
         stats.rtts.push(p.rtt);
@@ -447,12 +472,17 @@ chrome.runtime.onMessage.addListener((msg) => {
       appendLine(`[KURTARILDI] ${p.target} tekrar yanıt vermeye başladı.`, "ok");
     } else if (p.type === "started") {
       if (setupBanner) setupBanner.classList.add("hidden");
+      activeRunId = p.runId || activeRunId;
       setRunning(true);
       setStatus("Çalışıyor…", "running");
     } else if (p.type === "stopped") {
+      activeRunId = 0;
       setRunning(false);
-      setStatus("Tamamlandı", "warn");
+      if (!userStopped && !p.forced) {
+        setStatus("Tamamlandı", "warn");
+      }
     } else if (p.type === "error") {
+      activeRunId = 0;
       setRunning(false);
       setStatus(p.message || "Hata", "error");
       appendLine(p.message || "Hata", "fail");
@@ -485,7 +515,15 @@ async function boot() {
 
   await refreshRecent();
 
-  if (!elIp.value) {
+  const stateRes = await chrome.runtime.sendMessage({ type: "GET_STATE" }).catch(() => null);
+  const activeState = stateRes?.state;
+
+  if (activeState?.running) {
+    userStopped = false;
+    activeRunId = activeState.runId || 0;
+    if (activeState.target) elIp.value = activeState.target;
+    if (activeState.tool) tool = activeState.tool;
+  } else if (!elIp.value) {
     const data = await chrome.runtime.sendMessage({ type: "GET_PENDING" }).catch(() => null);
     if (data?.pendingTarget && data.pendingTarget !== "__invalid__") {
       elIp.value = data.pendingTarget;
@@ -500,7 +538,11 @@ async function boot() {
   applyUiMode(loadedMode);
   selectTool(tool);
 
-  if (elIp.value && params.get("autostart") !== "0") {
+  if (activeState?.running) {
+    setRunning(true);
+    setStatus("Çalışıyor…", "running");
+    appendLine(`> Aktif oturuma bağlanıldı: ${activeState.target}`, "meta");
+  } else if (elIp.value && params.get("autostart") !== "0") {
     if (params.has("target") || params.get("auto") === "1") {
       start(tool);
     }

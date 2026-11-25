@@ -294,9 +294,23 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     saveSettings(msg.settings).then((settings) => sendResponse({ settings }));
     return true;
   }
+  if (msg?.type === "GET_STATE") {
+    sendResponse({ state: activeState });
+    return false;
+  }
 });
 
 let port = null;
+let runSeq = 0;
+let activeState = { running: false, target: "", tool: "ping", runId: 0 };
+let stopWatchdog = null;
+
+function clearStopWatchdog() {
+  if (stopWatchdog) {
+    clearTimeout(stopWatchdog);
+    stopWatchdog = null;
+  }
+}
 
 function createBrowserNotification(idPrefix, message) {
   try {
@@ -337,18 +351,37 @@ function ensurePort() {
   port = chrome.runtime.connectNative(NATIVE_HOST);
 
   port.onMessage.addListener((message) => {
+    if (!message || typeof message !== "object") return;
+
+    if (message.type === "stopped" || message.type === "error") {
+      clearStopWatchdog();
+      if (!message.runId || message.runId === activeState.runId || activeState.runId === 0) {
+        activeState.running = false;
+        activeState.runId = 0;
+      }
+    } else if (activeState.runId === 0 || (message.runId && message.runId !== activeState.runId)) {
+      // Eski veya durdurulmus oturuma ait gecikmis paketi dusur
+      return;
+    }
+
     handleWatchPayload(message);
     broadcast({ type: "NATIVE_OUTPUT", payload: message });
   });
 
   port.onDisconnect.addListener(() => {
+    clearStopWatchdog();
+    const wasRunning = activeState.running;
+    activeState.running = false;
+    activeState.runId = 0;
     const err = chrome.runtime.lastError?.message;
-    broadcast({
-      type: "NATIVE_DISCONNECTED",
-      error:
-        err ||
-        "Native host bağlantısı koptu. install.bat ile kurup tarayıcıyı yenile.",
-    });
+    if (wasRunning || err) {
+      broadcast({
+        type: "NATIVE_DISCONNECTED",
+        error:
+          err ||
+          "Native host bağlantısı koptu. EasyInstall.bat ile kurup tarayıcıyı yenile.",
+      });
+    }
     port = null;
   });
 
@@ -371,10 +404,15 @@ async function handleNativePing(msg) {
 
   await saveRecentTarget(target);
 
+  clearStopWatchdog();
+  const runId = ++runSeq;
+  activeState = { running: true, target, tool, runId };
+
   try {
     const p = ensurePort();
     p.postMessage({
       action: "start",
+      runId,
       target,
       tool,
       continuous: tool === "ping" && count === 0 && msg.continuous !== false,
@@ -382,19 +420,44 @@ async function handleNativePing(msg) {
       ports: tool === "port" ? ports : undefined,
       notify,
     });
-    return { ok: true, target, tool };
+    return { ok: true, target, tool, runId };
   } catch (err) {
+    activeState = { running: false, target: "", tool: "ping", runId: 0 };
     return { ok: false, error: String(err?.message || err) };
   }
 }
 
 async function stopNativePing() {
+  const prevId = activeState.runId;
+  activeState.running = false;
+  activeState.runId = 0;
+  clearStopWatchdog();
+
   try {
     if (port) {
       port.postMessage({ action: "stop" });
+      stopWatchdog = setTimeout(() => {
+        stopWatchdog = null;
+        if (port) {
+          try {
+            port.disconnect();
+          } catch (_) {}
+          port = null;
+        }
+      }, 800);
     }
-    return { ok: true };
+    broadcast({
+      type: "NATIVE_OUTPUT",
+      payload: { type: "stopped", code: -1, runId: prevId, forced: true },
+    });
+    return { ok: true, runId: prevId };
   } catch (err) {
+    if (port) {
+      try {
+        port.disconnect();
+      } catch (_) {}
+      port = null;
+    }
     return { ok: false, error: String(err?.message || err) };
   }
 }
