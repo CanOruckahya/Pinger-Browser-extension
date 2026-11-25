@@ -61,62 +61,41 @@ flowchart LR
     B -->|3+ timeout / kurtarma| G["Windows Toast & Tarayıcı Bildirimi"]
 ```
 
-## Kolay Kurulum (Easy Install — ID Kopyalamadan)
+## Kurulum (30 Saniyede)
 
-[`Pinger/extension/manifest.json`](Pinger/extension/manifest.json) içinde sabit genel anahtar (`"key"`) bulunduğu için Chrome, Edge ve Brave her zaman sabit `gfepdmddjmpndndaacmopoppcpkcdfjb` kimliğini kullanır (Firefox için sabit `pinger@local`).
+### 1. Adım — İndir ve Kur
+Aşağıdaki iki yöntemden birini seçin *(hiçbir ID kopyalamanız gerekmez)*:
 
-### Seçenek 1 — Tek Satır PowerShell Kurulumu (Önerilen)
+- **A) PowerShell ile Tek Komut (En Hızlı):** Windows'ta PowerShell'i açıp şu komutu yapıştırın ve `Enter`'a basın:
+  ```powershell
+  irm https://raw.githubusercontent.com/CanOruckahya/Pinger-Browser-extension/main/scripts/easy-install.ps1 | iex
+  ```
+- **B) ZIP İndirerek:** [Releases](https://github.com/CanOruckahya/Pinger-Browser-extension/releases) sayfasından **`Pinger-v2.0.0-EasyInstall.zip`** dosyasını indirip klasöre çıkarın ve **`EasyInstall.bat`** dosyasına çift tıklayın.
 
-**PowerShell**'de şu komutu çalıştırın (Pinger'ı `%LOCALAPPDATA%\Pinger` dizinine indirir, Chrome/Edge/Brave/Firefox kayıtlarını otomatik yapar ve `extension` yolunu panoya kopyalar):
+### 2. Adım — Tarayıcıya Ekle (Chrome / Edge / Brave)
+1. Adres çubuğuna `chrome://extensions` *(veya `edge://extensions`)* yazıp açın.
+2. Sağ üstten **Geliştirici modu**nu açın.
+3. **Paketlenmemiş öğe yükle** butonuna tıklayın → açılan pencerede **`Ctrl + V`** yapıp **Klasör Seç**'e basın *(klasör yolu 1. adımda otomatik kopyalandı)*.
 
-```powershell
-irm https://raw.githubusercontent.com/CanOruckahya/Pinger-Browser-extension/main/scripts/easy-install.ps1 | iex
-```
+### 3. Adım — Kullan
+Açık web sayfanızı `F5` ile yenileyin. Herhangi bir IP'yi seçin veya sağ tıklayıp **Pingle**, **Tracert**, **Port Tara** ya da **DNS Lookup** deyin!
 
-Ardından tarayıcıda `chrome://extensions` veya `edge://extensions` açın → **Geliştirici modu** → **Paketlenmemiş öğe yükle** → `Ctrl+V`!
+<details>
+<summary>Firefox Kurulumu &amp; Kaldırma</summary>
 
-### Seçenek 2 — GitHub Releases ZIP + `EasyInstall.bat`
+1. Firefox'ta `about:debugging#/runtime/this-firefox` adresini açın.
+2. **Geçici eklenti yükle** → [`Pinger/extension/manifest.json`](Pinger/extension/manifest.json) dosyasını seçin.
+3. Eklentiyi tamamen kaldırmak için [`Pinger/uninstall.bat`](Pinger/uninstall.bat) dosyasını çalıştırın.
+4. Node.js kurulu olması şart değildir; PC'de Node.js yoksa otomatik olarak PowerShell (`host.ps1`) kullanılır.
 
-1. [Releases](https://github.com/CanOruckahya/Pinger-Browser-extension/releases) sayfasından **`Pinger-v2.0.0-EasyInstall.zip`** paketini indirip çıkarın.
-2. [`Pinger/EasyInstall.bat`](Pinger/EasyInstall.bat) dosyasına çift tıklayın — soru sormadan tüm tarayıcıları kaydeder ve `extension` yolunu panoya kopyalar.
-3. `chrome://extensions` veya `edge://extensions` → **Geliştirici modu** → **Paketlenmemiş öğe yükle** → `Ctrl+V`.
-
----
-
-## Manuel Kurulum
-
-### 1. Tarayıcı Eklentisini Yükle
-**Chrome / Edge / Brave**
-1. `chrome://extensions`, `edge://extensions` veya `brave://extensions` adresini açın.
-2. **Geliştirici modu**nu açın → **Paketlenmemiş öğe yükle** → [`Pinger/extension`](Pinger/extension) klasörünü seçin.
-3. Oluşan **Extension ID** değerini kopyalayın.
-
-**Firefox**
-1. `about:debugging#/runtime/this-firefox` adresini açın.
-2. **Geçici eklenti yükle** → [`Pinger/extension/manifest.json`](Pinger/extension/manifest.json) dosyasını seçin (sabit ID: `pinger@local`).
-
-### 2. Native Host Kaydını Yap
-[`Pinger/install.bat`](Pinger/install.bat) dosyasını çalıştırın (çift tıklayın veya ID'yi parametre olarak verin):
-
-```bat
-cd Pinger
-install.bat <CHROME_EDGE_BRAVE_EXTENSION_ID>
-```
-
-> **Not:** Node.js şart değildir. `host.bat` bilgisayarda Node.js varsa `host.js`'i, yoksa otomatik olarak PowerShell (`host.ps1`) sürümünü çalıştırır.
-
-Kayıt defteri anahtarlarını kaldırmak için [`Pinger/uninstall.bat`](Pinger/uninstall.bat) dosyasını kullanabilirsiniz.
-
-### 3. Yenile ve Kullan
-1. Eklenti kartından **Yeniden yükle**'ye tıklayın ve açık sayfayı `F5` ile yenileyin.
-2. Herhangi bir IP/host seçin veya üzerine sağ tıklayın → **Pingle**, **Tracert**, **Port Tara** ya da **DNS Lookup** seçin.
+</details>
 
 ## Sorun Giderme
 
 | Durum | Çözüm |
 | :--- | :--- |
-| `Native host bağlantısı koptu` | `install.bat <EXTENSION_ID>` komutunu tekrar çalıştırın, eklentiyi yenileyip sayfada `F5` yapın. |
-| Klasör taşındığı için host bulunamıyor | `install.bat` dosyasını yeni klasörden tekrar çalıştırın (`com.pinger.host.json` yolu güncellenir). |
+| `Native host bağlantısı koptu` | [`Pinger/EasyInstall.bat`](Pinger/EasyInstall.bat) dosyasını tekrar çalıştırın, eklentiyi yenileyip sayfada `F5` yapın. |
+| Klasör taşındığı için host bulunamıyor | [`Pinger/EasyInstall.bat`](Pinger/EasyInstall.bat) dosyasını yeni klasörden tekrar çalıştırın. |
 | IP üzerinde tarayıcının normal sağ tık menüsü lazım | **`Shift` + Sağ Tık** yaptığınızda Pinger menüsü atlanır ve tarayıcı menüsü açılır. |
 
 ## Lisans

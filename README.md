@@ -61,65 +61,46 @@ flowchart LR
     B -->|3+ timeouts / recovery| G["Windows Toast & Browser Notification"]
 ```
 
-## Easy Install (No Extension ID Copy-Paste)
+## Quick Install (3 Simple Steps)
 
-Because [`Pinger/extension/manifest.json`](Pinger/extension/manifest.json) ships with a fixed public `"key"`, Chromium browsers always assign the deterministic Extension ID `gfepdmddjmpndndaacmopoppcpkcdfjb` (and Firefox uses `pinger@local`).
+### Step 1 — Download & Setup
+Pick either method *(no Extension ID copy-pasting needed)*:
 
-### Option 1 — One-Line PowerShell Easy Install (Recommended)
+- **A) One-Line PowerShell (Fastest):** Open **PowerShell**, paste this command, and press `Enter`:
+  ```powershell
+  irm https://raw.githubusercontent.com/CanOruckahya/Pinger-Browser-extension/main/scripts/easy-install.ps1 | iex
+  ```
+- **B) ZIP Download:** Download **`Pinger-v2.0.0-EasyInstall.zip`** from [Releases](https://github.com/CanOruckahya/Pinger-Browser-extension/releases), extract it, and double-click **`EasyInstall.bat`**.
 
-Run this in **PowerShell** (downloads Pinger to `%LOCALAPPDATA%\Pinger`, registers Chrome/Edge/Brave/Firefox hosts automatically, and copies the `extension` path to your clipboard):
+### Step 2 — Add to Browser (Chrome / Edge / Brave)
+1. Open `chrome://extensions` *(or `edge://extensions`)*.
+2. Turn on **Developer mode** (top right).
+3. Click **Load unpacked** → press **`Ctrl + V`** → click **Select Folder** *(the folder path was copied in Step 1)*.
 
-```powershell
-irm https://raw.githubusercontent.com/CanOruckahya/Pinger-Browser-extension/main/scripts/easy-install.ps1 | iex
-```
+### Step 3 — Use
+Refresh any webpage (`F5`), select or right-click an IP/host, and pick **Pingle**, **Tracert**, **Port Tara**, or **DNS Lookup**!
 
-Then open `chrome://extensions` or `edge://extensions` → enable **Developer mode** → **Load unpacked** → press `Ctrl+V`!
+<details>
+<summary>Firefox Setup, Uninstall &amp; Manual Notes</summary>
 
-### Option 2 — GitHub Releases ZIP + `EasyInstall.bat`
+1. **Firefox:** Open `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → select [`Pinger/extension/manifest.json`](Pinger/extension/manifest.json).
+2. **Uninstall:** Run [`Pinger/uninstall.bat`](Pinger/uninstall.bat) to remove all browser Native Host Registry entries.
+3. **Zero dependencies:** Node.js is optional; `host.bat` uses `host.js` if `node` is installed, otherwise it automatically runs `host.ps1` via PowerShell.
 
-1. Download **`Pinger-v2.0.0-EasyInstall.zip`** from the [Releases](https://github.com/CanOruckahya/Pinger-Browser-extension/releases) page and extract it.
-2. Double-click [`Pinger/EasyInstall.bat`](Pinger/EasyInstall.bat) — no prompts, registers all browsers automatically and copies the `extension` path to your clipboard.
-3. Open `chrome://extensions` or `edge://extensions` → **Developer mode** → **Load unpacked** → press `Ctrl+V`.
-
----
-
-## Manual Installation
-
-### 1. Load the Browser Extension
-**Chrome / Edge / Brave**
-1. Open `chrome://extensions`, `edge://extensions`, or `brave://extensions`.
-2. Enable **Developer mode** → click **Load unpacked** → select [`Pinger/extension`](Pinger/extension).
-3. Copy the generated **Extension ID** (32 characters).
-
-**Firefox**
-1. Open `about:debugging#/runtime/this-firefox`.
-2. Click **Load Temporary Add-on** → select [`Pinger/extension/manifest.json`](Pinger/extension/manifest.json) (fixed ID: `pinger@local`).
-
-### 2. Register the Native Messaging Host
-Run [`Pinger/install.bat`](Pinger/install.bat) (double-click or pass the Extension ID directly):
-
-```bat
-cd Pinger
-install.bat <CHROME_EDGE_BRAVE_EXTENSION_ID>
-```
-
-> **Note:** Node.js is optional. `host.bat` uses `host.js` if `node` is in `PATH`, otherwise it falls back automatically to `host.ps1` via Windows PowerShell.
-
-To cleanly remove all Windows Registry entries later, run [`Pinger/uninstall.bat`](Pinger/uninstall.bat).
-
-### 3. Reload & Use
-1. Click **Reload** on the extension card and press `F5` on your open webpage.
-2. Select any IP/host or right-click on it → choose **Pingle**, **Tracert**, **Port Tara**, or **DNS Lookup**.
+</details>
 
 ## Project Structure
 
 ```text
 Pinger-Browser-extension/
 ├── docs/assets/                # README banner & UI preview SVGs
+├── scripts/
+│   └── easy-install.ps1        # One-line PowerShell installer
 ├── Pinger/
 │   ├── extension/              # Manifest V3 extension (popup, background, Shadow DOM content script, icons)
 │   ├── native-host/            # host.js, host.ps1, host.bat, install-host.ps1 & example manifests
-│   ├── install.bat             # One-click Registry & manifest setup (Chrome, Edge, Brave, Firefox)
+│   ├── EasyInstall.bat         # Zero-prompt double-click installer
+│   ├── install.bat             # CLI / custom-ID installer
 │   └── uninstall.bat           # Clean Registry removal script
 ├── LICENSE                     # MIT License
 ├── README.md                   # English documentation
@@ -130,8 +111,8 @@ Pinger-Browser-extension/
 
 | Symptom | Fix |
 | :--- | :--- |
-| `Native host bağlantısı koptu` | Run `install.bat <EXTENSION_ID>` again, then reload the extension and refresh the page (`F5`). |
-| Extension ID changed after moving folder | Re-run `install.bat` with the new ID so `com.pinger.host.json` updates its `path` and `allowed_origins`. |
+| `Native host bağlantısı koptu` | Run [`Pinger/EasyInstall.bat`](Pinger/EasyInstall.bat) again, reload the extension, and refresh the page (`F5`). |
+| Host missing after moving folder | Re-run [`Pinger/EasyInstall.bat`](Pinger/EasyInstall.bat) from the new folder location. |
 | Need the browser's default right-click menu on an IP | Hold **`Shift` + Right-Click** on the IP/link to bypass Pinger's custom menu. |
 | Enable verbose native host debug logging | Set `PINGER_DEBUG=1` in the environment before launching the browser (`Pinger/native-host/host-debug.log`). |
 
