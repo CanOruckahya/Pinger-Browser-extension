@@ -1,32 +1,29 @@
-# Pinger
+# Pinger v2.0
 
-Başka bilgisayara klasörü kopyala, sırayla:
+Tarayıcıdan ayrılmadan canlı **Ping**, **Tracert**, **TCP Port Taraması** ve **DNS Lookup** yapan Manifest V3 eklentisi. Detaylı mimari ve görseller için kök dizindeki [README_TR.md](../README_TR.md) dosyasına bakabilirsiniz.
 
-## 1) Extension’ı yükle
+## 1) Eklentiyi Yükle
 
-**Chrome / Edge**
-1. `chrome://extensions` veya `edge://extensions`
-2. Geliştirici modu → **Paketlenmemiş öğe yükle** → `extension` klasörü
-3. **ID**’yi kopyala
+**Chrome / Edge / Brave**
+1. `chrome://extensions`, `edge://extensions` veya `brave://extensions` açın
+2. Geliştirici modu → **Paketlenmemiş öğe yükle** → `extension` klasörünü seçin
+3. **ID**’yi kopyalayın
 
 **Firefox**
 1. `about:debugging#/runtime/this-firefox`
-2. **Geçici eklenti yükle** → `extension\manifest.json`  
-   (ID hazır: `pinger@local`)
+2. **Geçici eklenti yükle** → `extension\manifest.json` (ID hazır: `pinger@local`)
 
-## 2) `install.bat` çalıştır
+## 2) `install.bat` Çalıştır
 
-1. `install.bat` çift tıkla (ID sorarsa yapıştır)
-   - veya daha garantisi: `cmd` aç → Pinger klasörüne gir → şu komutu çalıştır:
-     `install.bat <CHROME_EDGE_ID>`
+1. `install.bat` dosyasına çift tıklayıp Extension ID’yi yapıştırın (veya `install.bat <CHROME_EDGE_ID>`)
+2. Kaldırmak istediğinizde `uninstall.bat` dosyasını çalıştırabilirsiniz.
 
 ## 3) Kullan
 
-Eklentiyi **Yeniden yükle** → sayfayı **F5** → IP seç / sağ tık → **Pingle**
+- Eklentiyi **Yeniden yükle** → sayfayı **F5** → IP/host seç veya sağ tık → **Pingle / Tracert / Port Tara / DNS Lookup**
+- IP üzerinde normal tarayıcı sağ tık menüsünü açmak için **`Shift` + Sağ Tık** kullanabilirsiniz.
 
 ---
 
-**Node.js şart değil.** Klasörde yok; PC’de varsa host onu kullanır, yoksa PowerShell ile çalışır.  
-ID değişirse sadece `install.bat`’ı tekrar çalıştır.
-
-**Bildirim:** Ping’de 3 kez timeout sonrası IP tekrar cevap verirse Windows bildirimi düşer.
+**Node.js şart değil.** PC’de varsa `host.js`, yoksa otomatik olarak PowerShell (`host.ps1`) çalışır.  
+**Bildirimler:** Ping’de ardışık 3+ timeout olunca kesinti bildirimi, hedef tekrar cevap verince Windows + tarayıcı kurtarma bildirimi düşer.

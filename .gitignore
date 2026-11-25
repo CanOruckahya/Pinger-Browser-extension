@@ -1,0 +1,12 @@
+# Logs and personal host manifests
+*.log
+Pinger/install.log
+Pinger/native-host/host-debug.log
+Pinger/native-host/last-extension-id.txt
+Pinger/native-host/com.pinger.host.json
+Pinger/native-host/com.pinger.host.firefox.json
+
+# OS & Dependencies
+.DS_Store
+Thumbs.db
+node_modules/

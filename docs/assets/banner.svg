@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" width="1200" height="340" role="img" aria-label="Pinger v2.0 Browser Extension Banner">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070b11" />
+      <stop offset="55%" stop-color="#0d1522" />
+      <stop offset="100%" stop-color="#101d30" />
+    </linearGradient>
+    <radialGradient id="glowBlue" cx="78%" cy="48%" r="36%">
+      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.28" />
+      <stop offset="60%" stop-color="#3ecf8e" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#070b11" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="pulseLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.2" />
+      <stop offset="50%" stop-color="#3ecf8e" />
+      <stop offset="100%" stop-color="#58a6ff" />
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1b2638" stroke-width="1" />
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="340" rx="18" fill="url(#bgGrad)" />
+  <rect width="1200" height="340" rx="18" fill="url(#grid)" opacity="0.55" />
+  <rect width="1200" height="340" rx="18" fill="url(#glowBlue)" />
+  <rect x="1" y="1" width="1198" height="338" rx="17" fill="none" stroke="#243247" stroke-width="2" />
+
+  <!-- Right radar decoration -->
+  <g transform="translate(960, 170)">
+    <circle r="126" fill="none" stroke="#25354c" stroke-width="1.5" stroke-dasharray="6 6" />
+    <circle r="92" fill="none" stroke="#2f81f7" stroke-opacity="0.45" stroke-width="2" />
+    <circle r="58" fill="none" stroke="#3ecf8e" stroke-opacity="0.65" stroke-width="2.5" />
+    <line x1="-136" y1="0" x2="136" y2="0" stroke="#223146" stroke-width="1" />
+    <line x1="0" y1="-136" x2="0" y2="136" stroke="#223146" stroke-width="1" />
+    <path d="M 0 0 L 82 -44 A 92 92 0 0 1 92 0 Z" fill="#3ecf8e" fill-opacity="0.16" />
+    <circle cx="0" cy="0" r="14" fill="#3ecf8e" />
+    <circle cx="0" cy="0" r="22" fill="none" stroke="#3ecf8e" stroke-opacity="0.45" stroke-width="2" />
+    <circle cx="56" cy="-42" r="5" fill="#58a6ff" />
+    <circle cx="-68" cy="36" r="4" fill="#f0b429" />
+  </g>
+
+  <!-- Mini sparkline motif -->
+  <g transform="translate(640, 224)">
+    <rect x="0" y="0" width="220" height="68" rx="10" fill="#0d131d" stroke="#243247" stroke-width="1.5" />
+    <text x="14" y="20" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600">LIVE RTT (ms)</text>
+    <text x="164" y="20" fill="#3ecf8e" font-family="Consolas, monospace" font-size="11" font-weight="700">14 ms</text>
+    <rect x="14" y="40" width="8" height="18" rx="2" fill="#3ecf8e" />
+    <rect x="26" y="34" width="8" height="24" rx="2" fill="#3ecf8e" />
+    <rect x="38" y="38" width="8" height="20" rx="2" fill="#3ecf8e" />
+    <rect x="50" y="28" width="8" height="30" rx="2" fill="#f0b429" />
+    <rect x="62" y="36" width="8" height="22" rx="2" fill="#3ecf8e" />
+    <rect x="74" y="42" width="8" height="16" rx="2" fill="#3ecf8e" />
+    <rect x="86" y="24" width="8" height="34" rx="2" fill="#ff6b6b" />
+    <rect x="98" y="37" width="8" height="21" rx="2" fill="#3ecf8e" />
+    <rect x="110" y="39" width="8" height="19" rx="2" fill="#3ecf8e" />
+    <rect x="122" y="35" width="8" height="23" rx="2" fill="#3ecf8e" />
+    <rect x="134" y="32" width="8" height="26" rx="2" fill="#f0b429" />
+    <rect x="146" y="39" width="8" height="19" rx="2" fill="#3ecf8e" />
+    <rect x="158" y="41" width="8" height="17" rx="2" fill="#3ecf8e" />
+    <rect x="170" y="38" width="8" height="20" rx="2" fill="#3ecf8e" />
+    <rect x="182" y="40" width="8" height="18" rx="2" fill="#3ecf8e" />
+    <rect x="194" y="37" width="8" height="21" rx="2" fill="#3ecf8e" />
+  </g>
+
+  <!-- Left Title & Badges -->
+  <g transform="translate(58, 56)">
+    <rect x="0" y="0" width="138" height="28" rx="14" fill="#132540" stroke="#2f81f7" stroke-width="1" />
+    <circle cx="16" cy="14" r="4.5" fill="#3ecf8e" />
+    <text x="28" y="18" fill="#7ecfff" font-family="Segoe UI, system-ui, sans-serif" font-size="12" font-weight="700">RELEASE v2.0.0</text>
+
+    <text x="0" y="88" fill="#f0f6fc" font-family="Segoe UI, system-ui, sans-serif" font-size="56" font-weight="800" letter-spacing="-1">Pinger</text>
+    <text x="0" y="126" fill="#9fb0c7" font-family="Segoe UI, system-ui, sans-serif" font-size="19" font-weight="500">
+      Instant Ping, Traceroute, TCP Port Test &amp; DNS Lookup from any webpage
+    </text>
+
+    <!-- Feature Chips -->
+    <g transform="translate(0, 158)">
+      <rect x="0" y="0" width="174" height="32" rx="8" fill="#131b26" stroke="#263449" />
+      <text x="14" y="20" fill="#3ecf8e" font-family="Segoe UI, system-ui, sans-serif" font-size="12.5" font-weight="600">Real-time RTT Graph</text>
+
+      <rect x="186" y="0" width="188" height="32" rx="8" fill="#131b26" stroke="#263449" />
+      <text x="200" y="20" fill="#58a6ff" font-family="Segoe UI, system-ui, sans-serif" font-size="12.5" font-weight="600">Down &amp; Recovery Alerts</text>
+
+      <rect x="386" y="0" width="166" height="32" rx="8" fill="#131b26" stroke="#263449" />
+      <text x="400" y="20" fill="#e8eef7" font-family="Segoe UI, system-ui, sans-serif" font-size="12.5" font-weight="600">Chrome • Edge • FF</text>
+    </g>
+  </g>
+</svg>

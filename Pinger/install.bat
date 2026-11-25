@@ -31,7 +31,7 @@ set "HOSTBAT_JSON=%HOSTBAT:\=/%"
 
 echo.
 echo  ========================================
-echo   PINGER  -  Native Host Kurulum
+echo   PINGER v2.0 - Native Host Kurulum
 echo  ========================================
 echo.
 echo  1^) Chrome:  chrome://extensions

@@ -1,5 +1,13 @@
 const NATIVE_HOST = "com.pinger.host";
-const MENU_ID = "pinger-ping";
+const RECENT_KEY = "pingerRecentTargets";
+const SETTINGS_KEY = "pingerSettings";
+
+const DEFAULT_SETTINGS = {
+  showTimestamp: false,
+  notify: true,
+  pingCount: 0,
+  defaultPorts: "80,443,22,3389,8080",
+};
 
 /** Chrome + Firefox: session yoksa local'e dus */
 const sessionStore = chrome.storage.session || chrome.storage.local;
@@ -19,16 +27,28 @@ const IP_V4 =
 const IP_V6 =
   /^(?:[0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4}$|^::(?:[0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}$|^(?:[0-9a-fA-F]{1,4}:){1,7}:$/;
 
+const ALLOWED_TOOLS = new Set(["ping", "tracert", "port", "dns"]);
+
 function ensureContextMenu() {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
-      id: MENU_ID,
+      id: "pinger-ping",
       title: 'Pingle: "%s"',
       contexts: ["selection"],
     });
     chrome.contextMenus.create({
       id: "pinger-tracert",
       title: 'Tracert: "%s"',
+      contexts: ["selection"],
+    });
+    chrome.contextMenus.create({
+      id: "pinger-port",
+      title: 'Port Tara: "%s"',
+      contexts: ["selection"],
+    });
+    chrome.contextMenus.create({
+      id: "pinger-dns",
+      title: 'DNS Lookup: "%s"',
       contexts: ["selection"],
     });
     chrome.contextMenus.create({
@@ -39,7 +59,6 @@ function ensureContextMenu() {
   });
 }
 
-// Service worker her uyandığında menüyü yeniden yaz
 ensureContextMenu();
 chrome.runtime.onInstalled.addListener(ensureContextMenu);
 chrome.runtime.onStartup.addListener(ensureContextMenu);
@@ -67,7 +86,7 @@ function normalizeTarget(raw) {
   return null;
 }
 
-/** Metin içinden ilk IPv4'ü çıkar (dashboard hücreleri için) */
+/** Metin içinden ilk IPv4'ü veya hostname'i çıkar */
 function extractIp(raw) {
   if (!raw) return null;
   const direct = normalizeTarget(raw);
@@ -78,8 +97,41 @@ function extractIp(raw) {
   return m ? m[0] : null;
 }
 
+async function getRecentTargets() {
+  try {
+    const data = await chrome.storage.local.get(RECENT_KEY);
+    return Array.isArray(data[RECENT_KEY]) ? data[RECENT_KEY] : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+async function saveRecentTarget(target) {
+  if (!target) return [];
+  const prev = await getRecentTargets();
+  const next = [target, ...prev.filter((item) => item !== target)].slice(0, 8);
+  await chrome.storage.local.set({ [RECENT_KEY]: next }).catch(() => {});
+  return next;
+}
+
+async function getSettings() {
+  try {
+    const data = await chrome.storage.local.get(SETTINGS_KEY);
+    return { ...DEFAULT_SETTINGS, ...(data[SETTINGS_KEY] || {}) };
+  } catch (_) {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+async function saveSettings(partial) {
+  const current = await getSettings();
+  const next = { ...current, ...(partial || {}) };
+  await chrome.storage.local.set({ [SETTINGS_KEY]: next }).catch(() => {});
+  return next;
+}
+
 async function openInPagePanel(target, tool = "ping") {
-  const mode = tool === "tracert" ? "tracert" : "ping";
+  const mode = ALLOWED_TOOLS.has(tool) ? tool : "ping";
   try {
     const [tab] = await chrome.tabs.query({
       active: true,
@@ -107,19 +159,17 @@ async function openInPagePanel(target, tool = "ping") {
 }
 
 async function openPingWindow(target, tool = "ping") {
-  const mode = tool === "tracert" ? "tracert" : "ping";
+  const mode = ALLOWED_TOOLS.has(tool) ? tool : "ping";
   await sessionSet({ pendingTarget: target, pendingTool: mode });
 
-  // Önce aynı sekmenin sağ kenar paneli
   if (target !== "__invalid__") {
     const ok = await openInPagePanel(target, mode);
     if (ok) return;
   }
 
-  // Fallback: küçük popup (edge:// vs.)
-  const width = 340;
-  const height = 380;
-  const left = 1500;
+  const width = 420;
+  const height = 580;
+  const left = 1420;
   const top = 60;
 
   const existing = await sessionGet("pingWindowId");
@@ -160,14 +210,21 @@ chrome.windows.onRemoved.addListener(async (windowId) => {
 });
 
 chrome.contextMenus.onClicked.addListener(async (info) => {
-  let raw = info.selectionText;
-  if (info.menuItemId === "pinger-ping-link") {
-    raw = info.linkUrl || info.selectionText;
-  }
-  const allowed = [MENU_ID, "pinger-ping-link", "pinger-tracert"];
-  if (!allowed.includes(info.menuItemId)) return;
+  const menuToolMap = {
+    "pinger-ping": "ping",
+    "pinger-tracert": "tracert",
+    "pinger-port": "port",
+    "pinger-dns": "dns",
+    "pinger-ping-link": "ping",
+  };
+  const tool = menuToolMap[info.menuItemId];
+  if (!tool) return;
 
-  const tool = info.menuItemId === "pinger-tracert" ? "tracert" : "ping";
+  const raw =
+    info.menuItemId === "pinger-ping-link"
+      ? info.linkUrl || info.selectionText
+      : info.selectionText;
+
   const target = extractIp(raw) || normalizeTarget(raw);
   if (!target) {
     await sessionSet({
@@ -183,14 +240,12 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg?.type === "PING_TARGET") {
-    // Content script kendi kenar panelini açar; burada sadece native başlatma yok
-    // Eski çağrılar için: sayfada panel açmayı dene
     const target = extractIp(msg.target) || normalizeTarget(msg.target);
     if (!target) {
-      sendResponse({ ok: false, error: "Geçersiz IP" });
+      sendResponse({ ok: false, error: "Geçersiz IP/host" });
       return false;
     }
-    const tool = msg.tool === "tracert" ? "tracert" : "ping";
+    const tool = ALLOWED_TOOLS.has(msg.tool) ? msg.tool : "ping";
     if (msg.inline) {
       sendResponse({ ok: true, target, tool });
       return false;
@@ -222,16 +277,29 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     );
     return true;
   }
+  if (msg?.type === "GET_RECENT") {
+    getRecentTargets().then((targets) => sendResponse({ targets }));
+    return true;
+  }
+  if (msg?.type === "SAVE_RECENT") {
+    saveRecentTarget(msg.target).then((targets) => sendResponse({ targets }));
+    return true;
+  }
+  if (msg?.type === "GET_SETTINGS") {
+    getSettings().then((settings) => sendResponse({ settings }));
+    return true;
+  }
+  if (msg?.type === "SAVE_SETTINGS") {
+    saveSettings(msg.settings).then((settings) => sendResponse({ settings }));
+    return true;
+  }
 });
 
 let port = null;
 
-/** Cevap gelince Windows bildirimi (host recovered mesaji) */
-function notifyRecovery(target) {
-  const ip = target || "IP";
-  const message = `${ip} cevap vermeye başladı`;
+function createBrowserNotification(idPrefix, message) {
   try {
-    chrome.notifications.create(`pinger-up-${Date.now()}`, {
+    chrome.notifications.create(`${idPrefix}-${Date.now()}`, {
       type: "basic",
       iconUrl: chrome.runtime.getURL("icons/icon128.png"),
       title: "Pinger",
@@ -244,8 +312,11 @@ function notifyRecovery(target) {
 
 function handleWatchPayload(payload) {
   if (!payload) return;
-  if (payload.type === "recovered") {
-    notifyRecovery(payload.target);
+  const target = payload.target || "IP";
+  if (payload.type === "down") {
+    createBrowserNotification("pinger-down", `${target} yanıt vermiyor (3+ timeout)`);
+  } else if (payload.type === "recovered") {
+    createBrowserNotification("pinger-up", `${target} tekrar cevap vermeye başladı`);
   }
 }
 
@@ -288,15 +359,29 @@ async function handleNativePing(msg) {
   if (!target) {
     return { ok: false, error: "Geçersiz IP/host." };
   }
+  const tool = ALLOWED_TOOLS.has(msg.tool) ? msg.tool : "ping";
+  const settings = await getSettings();
+  const count =
+    msg.count !== undefined && msg.count !== null
+      ? Number(msg.count)
+      : Number(settings.pingCount || 0);
+  const ports = msg.ports || settings.defaultPorts || "80,443,22,3389,8080";
+  const notify = msg.notify !== undefined ? Boolean(msg.notify) : Boolean(settings.notify);
+
+  await saveRecentTarget(target);
+
   try {
     const p = ensurePort();
     p.postMessage({
       action: "start",
       target,
-      tool: msg.tool === "tracert" ? "tracert" : "ping",
-      continuous: msg.continuous !== false && msg.tool !== "tracert",
+      tool,
+      continuous: tool === "ping" && count === 0 && msg.continuous !== false,
+      count: tool === "ping" ? count : undefined,
+      ports: tool === "port" ? ports : undefined,
+      notify,
     });
-    return { ok: true, target };
+    return { ok: true, target, tool };
   } catch (err) {
     return { ok: false, error: String(err?.message || err) };
   }

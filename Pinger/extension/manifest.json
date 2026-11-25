@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Pinger",
-  "version": "1.6.0",
-  "description": "IP seç → Pingle / Tracert. 3 timeout sonrası cevap gelince Windows bildirimi.",
+  "version": "2.0.0",
+  "description": "IP/Host seç → Canlı grafikli Ping, Tracert, Port Testi & DNS Lookup. Kesinti ve geri dönüş bildirimleri.",
   "permissions": [
     "contextMenus",
     "nativeMessaging",
@@ -25,7 +25,7 @@
     }
   ],
   "action": {
-    "default_title": "Pinger",
+    "default_title": "Pinger v2.0",
     "default_popup": "action.html",
     "default_icon": {
       "16": "icons/icon16.png",

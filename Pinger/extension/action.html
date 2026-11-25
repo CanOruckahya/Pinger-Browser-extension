@@ -3,22 +3,90 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pinger</title>
+  <title>Pinger v2.0</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
   <header class="head">
-    <h1 id="title">Pinger</h1>
-    <button id="btnStop" class="link" type="button" disabled>Durdur</button>
+    <div class="brand">
+      <span class="dot" id="statusDot"></span>
+      <h1 id="title">Pinger</h1>
+      <span class="badge">v2.0</span>
+    </div>
+    <div class="head-actions">
+      <span id="status" class="status">Hazır</span>
+      <button id="btnNotify" class="icon-btn active" type="button" title="Kesinti & geri dönüş bildirimi">🔔</button>
+    </div>
   </header>
 
+  <nav class="tabs" aria-label="Araç Modu">
+    <button class="tab active" data-tool="ping" type="button">Ping</button>
+    <button class="tab" data-tool="tracert" type="button">Tracert</button>
+    <button class="tab" data-tool="port" type="button">Port</button>
+    <button class="tab" data-tool="dns" type="button">DNS</button>
+  </nav>
+
   <div class="row">
-    <input id="ip" type="text" placeholder="1.2.3.4" spellcheck="false" autocomplete="off" />
-    <button id="btnPing" class="primary" type="button">Pingle</button>
-    <button id="btnTrace" type="button">Tracert</button>
+    <input id="ip" type="text" placeholder="8.8.8.8 veya google.com" spellcheck="false" autocomplete="off" />
+    <button id="btnRun" class="primary" type="button">Başlat</button>
+    <button id="btnStop" type="button" disabled>Durdur</button>
   </div>
 
-  <div id="status" class="status">Hazır</div>
+  <div class="options" id="optRow">
+    <div class="ping-opts" id="pingOpts">
+      <button class="pill active" data-count="0" type="button">Sürekli (-t)</button>
+      <button class="pill" data-count="4" type="button">4 Paket</button>
+      <button class="pill" data-count="10" type="button">10 Paket</button>
+    </div>
+    <div class="port-opts hidden" id="portOpts">
+      <span class="opt-label">Portlar:</span>
+      <input id="portsInput" type="text" value="80,443,22,3389,8080" placeholder="80,443,22,3389" spellcheck="false" />
+    </div>
+    <div class="hint-opts hidden" id="hintOpts"></div>
+  </div>
+
+  <div class="recent-row hidden" id="recentRow"></div>
+
+  <section class="stats" aria-label="Canlı İstatistikler">
+    <div class="stat">
+      <span class="stat-k">Gönderilen / Kayıp</span>
+      <span class="stat-v" id="statLoss">0 / 0%</span>
+    </div>
+    <div class="stat">
+      <span class="stat-k">Anlık</span>
+      <span class="stat-v" id="statLast">-</span>
+    </div>
+    <div class="stat">
+      <span class="stat-k">Ortalama</span>
+      <span class="stat-v" id="statAvg">-</span>
+    </div>
+    <div class="stat">
+      <span class="stat-k">Min / Maks</span>
+      <span class="stat-v" id="statMinMax">-</span>
+    </div>
+  </section>
+
+  <section class="chart-card">
+    <div class="chart-head">
+      <span>Canlı Gecikme (son 30 paket)</span>
+      <span class="chart-legend">
+        <i class="lg ok"></i>&lt;50ms
+        <i class="lg warn"></i>50-150ms
+        <i class="lg fail"></i>Timeout
+      </span>
+    </div>
+    <canvas id="sparkline" width="376" height="58"></canvas>
+  </section>
+
+  <div class="log-bar">
+    <span class="log-title">Çıktı</span>
+    <div class="log-tools">
+      <button id="btnTimestamp" class="mini" type="button" title="Zaman damgası">🕒 Saat</button>
+      <button id="btnCopy" class="mini" type="button" title="Özeti ve logları kopyala">📋 Kopyala</button>
+      <button id="btnClear" class="mini" type="button" title="Logu temizle">🧹 Temizle</button>
+    </div>
+  </div>
+
   <pre id="log" class="log"></pre>
 
   <script src="popup.js"></script>

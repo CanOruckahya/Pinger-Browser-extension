@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 620" width="500" height="620" role="img" aria-label="Pinger v2.0 Popup Interface Preview">
+  <defs>
+    <linearGradient id="canvasBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070b11" />
+      <stop offset="100%" stop-color="#0e1624" />
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000000" flood-opacity="0.55" />
+    </filter>
+  </defs>
+
+  <rect width="500" height="620" rx="16" fill="url(#canvasBg)" />
+
+  <!-- Popup Frame (420x556 centered) -->
+  <g transform="translate(40, 32)" filter="url(#cardShadow)">
+    <rect width="420" height="556" rx="14" fill="#0b1017" stroke="#253142" stroke-width="1.5" />
+
+    <!-- Header -->
+    <circle cx="22" cy="24" r="4.5" fill="#3ecf8e" />
+    <text x="34" y="29" fill="#e8eef7" font-family="Segoe UI, system-ui, sans-serif" font-size="16" font-weight="700">Pinger</text>
+    <rect x="90" y="15" width="38" height="17" rx="8.5" fill="#132540" stroke="#2f81f7" stroke-width="1" />
+    <text x="99" y="27" fill="#58a6ff" font-family="Segoe UI, system-ui, sans-serif" font-size="10" font-weight="700">v2.0</text>
+    <text x="295" y="28" fill="#3ecf8e" font-family="Segoe UI, system-ui, sans-serif" font-size="11.5" font-weight="600">Çalışıyor…</text>
+    <rect x="366" y="13" width="34" height="22" rx="6" fill="#112922" stroke="#3ecf8e" stroke-opacity="0.5" />
+    <text x="377" y="28" fill="#e8eef7" font-family="Segoe UI, system-ui, sans-serif" font-size="12">🔔</text>
+
+    <!-- Mode Tabs -->
+    <g transform="translate(16, 46)">
+      <rect width="388" height="32" rx="8" fill="#131a24" stroke="#253142" />
+      <rect x="4" y="4" width="92" height="24" rx="6" fill="#2f81f7" />
+      <text x="36" y="20" fill="#ffffff" font-family="Segoe UI, system-ui, sans-serif" font-size="11.5" font-weight="700">Ping</text>
+      <text x="122" y="20" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="11.5" font-weight="600">Tracert</text>
+      <text x="228" y="20" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="11.5" font-weight="600">Port</text>
+      <text x="326" y="20" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="11.5" font-weight="600">DNS</text>
+    </g>
+
+    <!-- Input + Action Buttons -->
+    <g transform="translate(16, 88)">
+      <rect width="234" height="34" rx="7" fill="#131a24" stroke="#2f81f7" />
+      <text x="12" y="21" fill="#e8eef7" font-family="Consolas, monospace" font-size="13">8.8.8.8</text>
+      <rect x="242" y="0" width="70" height="34" rx="7" fill="#1c3b6b" stroke="#2f81f7" />
+      <text x="258" y="21" fill="#8fbaff" font-family="Segoe UI, system-ui, sans-serif" font-size="12" font-weight="600">Başlat</text>
+      <rect x="320" y="0" width="68" height="34" rx="7" fill="#18212e" stroke="#253142" />
+      <text x="334" y="21" fill="#e8eef7" font-family="Segoe UI, system-ui, sans-serif" font-size="12" font-weight="600">Durdur</text>
+    </g>
+
+    <!-- Count Pills & Recent Chips -->
+    <g transform="translate(16, 130)">
+      <rect x="0" y="0" width="84" height="24" rx="12" fill="#132540" stroke="#2f81f7" />
+      <text x="12" y="16" fill="#58a6ff" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600">Sürekli (-t)</text>
+      <rect x="92" y="0" width="68" height="24" rx="12" fill="#131a24" stroke="#253142" />
+      <text x="105" y="16" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600">4 Paket</text>
+      <rect x="168" y="0" width="74" height="24" rx="12" fill="#131a24" stroke="#253142" />
+      <text x="181" y="16" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600">10 Paket</text>
+    </g>
+
+    <g transform="translate(16, 162)">
+      <rect x="0" y="0" width="66" height="22" rx="11" fill="#131a24" stroke="#253142" />
+      <text x="10" y="15" fill="#8a9bb2" font-family="Consolas, monospace" font-size="11">1.1.1.1</text>
+      <rect x="74" y="0" width="90" height="22" rx="11" fill="#131a24" stroke="#253142" />
+      <text x="84" y="15" fill="#8a9bb2" font-family="Consolas, monospace" font-size="11">192.168.1.1</text>
+      <rect x="172" y="0" width="112" height="22" rx="11" fill="#131a24" stroke="#253142" />
+      <text x="182" y="15" fill="#8a9bb2" font-family="Consolas, monospace" font-size="11">cloudflare.com</text>
+    </g>
+
+    <!-- 4 Stat Cards -->
+    <g transform="translate(16, 194)">
+      <rect x="0" y="0" width="92" height="44" rx="8" fill="#131a24" stroke="#253142" />
+      <text x="8" y="16" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="9.5">Gönderilen/Kayıp</text>
+      <text x="8" y="34" fill="#3ecf8e" font-family="Consolas, monospace" font-size="12" font-weight="700">18 / 0%</text>
+
+      <rect x="98" y="0" width="92" height="44" rx="8" fill="#131a24" stroke="#253142" />
+      <text x="106" y="16" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="9.5">Anlık</text>
+      <text x="106" y="34" fill="#3ecf8e" font-family="Consolas, monospace" font-size="12" font-weight="700">14 ms</text>
+
+      <rect x="196" y="0" width="92" height="44" rx="8" fill="#131a24" stroke="#253142" />
+      <text x="204" y="16" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="9.5">Ortalama</text>
+      <text x="204" y="34" fill="#e8eef7" font-family="Consolas, monospace" font-size="12" font-weight="700">16 ms</text>
+
+      <rect x="294" y="0" width="94" height="44" rx="8" fill="#131a24" stroke="#253142" />
+      <text x="302" y="16" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="9.5">Min / Maks</text>
+      <text x="302" y="34" fill="#e8eef7" font-family="Consolas, monospace" font-size="12" font-weight="700">11 / 24</text>
+    </g>
+
+    <!-- Live Sparkline Chart -->
+    <g transform="translate(16, 248)">
+      <rect width="388" height="82" rx="8" fill="#131a24" stroke="#253142" />
+      <text x="10" y="17" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="10">Canlı Gecikme (son 30 paket)</text>
+      <text x="260" y="17" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="9.5">● &lt;50ms  ● 50-150ms  ● Timeout</text>
+      <line x1="10" y1="36" x2="378" y2="36" stroke="#202c3c" stroke-width="1" />
+      <line x1="10" y1="54" x2="378" y2="54" stroke="#202c3c" stroke-width="1" />
+      <!-- Bars -->
+      <rect x="14" y="48" width="9" height="24" rx="1.5" fill="#3ecf8e" />
+      <rect x="27" y="42" width="9" height="30" rx="1.5" fill="#3ecf8e" />
+      <rect x="40" y="50" width="9" height="22" rx="1.5" fill="#3ecf8e" />
+      <rect x="53" y="34" width="9" height="38" rx="1.5" fill="#f0b429" />
+      <rect x="66" y="46" width="9" height="26" rx="1.5" fill="#3ecf8e" />
+      <rect x="79" y="52" width="9" height="20" rx="1.5" fill="#3ecf8e" />
+      <rect x="92" y="49" width="9" height="23" rx="1.5" fill="#3ecf8e" />
+      <rect x="105" y="26" width="9" height="46" rx="1.5" fill="#ff6b6b" />
+      <rect x="118" y="45" width="9" height="27" rx="1.5" fill="#3ecf8e" />
+      <rect x="131" y="48" width="9" height="24" rx="1.5" fill="#3ecf8e" />
+      <rect x="144" y="44" width="9" height="28" rx="1.5" fill="#3ecf8e" />
+      <rect x="157" y="39" width="9" height="33" rx="1.5" fill="#f0b429" />
+      <rect x="170" y="51" width="9" height="21" rx="1.5" fill="#3ecf8e" />
+      <rect x="183" y="47" width="9" height="25" rx="1.5" fill="#3ecf8e" />
+      <rect x="196" y="49" width="9" height="23" rx="1.5" fill="#3ecf8e" />
+      <rect x="209" y="46" width="9" height="26" rx="1.5" fill="#3ecf8e" />
+      <rect x="222" y="50" width="9" height="22" rx="1.5" fill="#3ecf8e" />
+      <rect x="235" y="48" width="9" height="24" rx="1.5" fill="#3ecf8e" />
+    </g>
+
+    <!-- Terminal Toolbar -->
+    <g transform="translate(16, 338)">
+      <text x="0" y="14" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600">Çıktı</text>
+      <rect x="206" y="0" width="54" height="20" rx="5" fill="#131a24" stroke="#2f81f7" />
+      <text x="214" y="14" fill="#58a6ff" font-family="Segoe UI, system-ui, sans-serif" font-size="10">🕒 Saat</text>
+      <rect x="266" y="0" width="60" height="20" rx="5" fill="#131a24" stroke="#253142" />
+      <text x="273" y="14" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="10">📋 Kopyala</text>
+      <rect x="332" y="0" width="56" height="20" rx="5" fill="#131a24" stroke="#253142" />
+      <text x="339" y="14" fill="#8a9bb2" font-family="Segoe UI, system-ui, sans-serif" font-size="10">🧹 Temizle</text>
+    </g>
+
+    <!-- Terminal Log -->
+    <g transform="translate(16, 366)">
+      <rect width="388" height="174" rx="8" fill="#0d121a" stroke="#253142" />
+      <text x="12" y="22" fill="#8a9bb2" font-family="Consolas, monospace" font-size="11">&gt; ping 8.8.8.8 -t</text>
+      <text x="12" y="42" fill="#3ecf8e" font-family="Consolas, monospace" font-size="11">[19:41:02] Reply from 8.8.8.8: bytes=32 time=14ms TTL=56</text>
+      <text x="12" y="60" fill="#3ecf8e" font-family="Consolas, monospace" font-size="11">[19:41:03] Reply from 8.8.8.8: bytes=32 time=16ms TTL=56</text>
+      <text x="12" y="78" fill="#3ecf8e" font-family="Consolas, monospace" font-size="11">[19:41:04] Reply from 8.8.8.8: bytes=32 time=13ms TTL=56</text>
+      <text x="12" y="96" fill="#ff6b6b" font-family="Consolas, monospace" font-size="11">[19:41:05] Request timed out. (TimedOut)</text>
+      <text x="12" y="114" fill="#3ecf8e" font-family="Consolas, monospace" font-size="11">[19:41:06] Reply from 8.8.8.8: bytes=32 time=15ms TTL=56</text>
+      <text x="12" y="132" fill="#3ecf8e" font-family="Consolas, monospace" font-size="11">[19:41:07] Reply from 8.8.8.8: bytes=32 time=14ms TTL=56</text>
+      <text x="12" y="150" fill="#58a6ff" font-family="Consolas, monospace" font-size="11">[19:41:08] Reply from 8.8.8.8: bytes=32 time=14ms TTL=56</text>
+    </g>
+  </g>
+</svg>

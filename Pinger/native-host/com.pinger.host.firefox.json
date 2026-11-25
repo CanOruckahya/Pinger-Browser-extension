@@ -1,9 +1,0 @@
-{
-  "name": "com.pinger.host",
-  "description": "Pinger native host",
-  "path": "C:/Users/can.oruckahya/Desktop/Pinger/native-host/host.bat",
-  "type": "stdio",
-  "allowed_extensions": [
-    "pinger@local"
-  ]
-}

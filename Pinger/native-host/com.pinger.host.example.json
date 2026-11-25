@@ -1,0 +1,9 @@
+{
+  "name": "com.pinger.host",
+  "description": "Pinger native host",
+  "path": "C:/path/to/Pinger/native-host/host.bat",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://YOUR_EXTENSION_ID/"
+  ]
+}

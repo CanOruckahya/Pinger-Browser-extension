@@ -8,6 +8,8 @@
   const ROOT_ID = "pinger-side-root";
   let root = null;
   let running = false;
+  let currentTool = "ping";
+  let stats = { sent: 0, lost: 0, rtts: [], samples: [] };
 
   function extractIp(text) {
     if (!text) return null;
@@ -48,23 +50,24 @@
       <style>
         :host { all: initial; }
         * { box-sizing: border-box; font-family: "Segoe UI", system-ui, sans-serif; }
+        .hidden { display: none !important; }
         .panel {
           position: fixed;
           top: 72px;
           left: auto;
           right: 12px;
-          width: 300px;
+          width: 340px;
           max-height: calc(100vh - 24px);
           z-index: 2147483647;
           display: none;
           flex-direction: column;
-          gap: 8px;
+          gap: 7px;
           padding: 12px;
-          background: #0f1419;
-          color: #e7edf5;
-          border: 1px solid #2a3441;
-          border-radius: 10px;
-          box-shadow: 0 12px 40px rgba(0,0,0,.5);
+          background: #0b1017;
+          color: #e8eef7;
+          border: 1px solid #253142;
+          border-radius: 11px;
+          box-shadow: 0 14px 44px rgba(0,0,0,.55);
         }
         .panel.open { display: flex; }
         .panel.dragging { opacity: 0.92; user-select: none; }
@@ -75,37 +78,68 @@
           gap: 8px;
           cursor: grab;
           padding-bottom: 2px;
-          border-bottom: 1px solid transparent;
         }
         .head:active { cursor: grabbing; }
-        .title { margin: 0; font-size: 14px; font-weight: 700; flex: 1; }
+        .brand { display: flex; align-items: center; gap: 6px; flex: 1; }
+        .dot {
+          width: 8px; height: 8px; border-radius: 50%; background: #8a9bb2;
+        }
+        .dot.running { background: #3ecf8e; box-shadow: 0 0 8px #3ecf8e; }
+        .dot.error { background: #ff6b6b; box-shadow: 0 0 8px #ff6b6b; }
+        .dot.warn { background: #f0b429; }
+        .title { margin: 0; font-size: 13.5px; font-weight: 700; }
+        .badge {
+          font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 999px;
+          background: rgba(47,129,247,.16); color: #58a6ff; border: 1px solid rgba(47,129,247,.35);
+        }
         .x {
           all: unset;
           cursor: pointer;
-          color: #8b9bb0;
+          color: #8a9bb2;
           font-size: 18px;
           line-height: 1;
           padding: 2px 6px;
         }
         .x:hover { color: #fff; }
-        .row { display: flex; gap: 6px; }
+        .tabs {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 3px;
+          background: #131a24;
+          border: 1px solid #253142;
+          border-radius: 7px;
+          padding: 2px;
+        }
+        .tab {
+          appearance: none;
+          border: none;
+          background: transparent;
+          color: #8a9bb2;
+          font: 600 11px "Segoe UI", system-ui, sans-serif;
+          padding: 5px 4px;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+        .tab.active { background: #2f81f7; color: #fff; }
+        .row { display: flex; gap: 6px; align-items: center; }
         input {
           flex: 1;
           min-width: 0;
-          background: #171d25;
-          border: 1px solid #2a3441;
-          color: #e7edf5;
+          background: #131a24;
+          border: 1px solid #253142;
+          color: #e8eef7;
           border-radius: 6px;
-          padding: 7px 9px;
+          padding: 6px 9px;
           font: 12px Consolas, monospace;
         }
+        input:focus { outline: none; border-color: #2f81f7; }
         button.act {
           appearance: none;
-          border: 1px solid #2a3441;
-          background: #222b36;
-          color: #e7edf5;
+          border: 1px solid #253142;
+          background: #18212e;
+          color: #e8eef7;
           font: 600 11px "Segoe UI", system-ui, sans-serif;
-          padding: 7px 9px;
+          padding: 6px 9px;
           border-radius: 6px;
           cursor: pointer;
           white-space: nowrap;
@@ -116,17 +150,38 @@
           color: #fff;
         }
         button.act:disabled { opacity: .45; cursor: not-allowed; }
-        .status { font-size: 11px; color: #8b9bb0; }
+        .stats-bar {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 5px;
+          font: 600 10.5px Consolas, monospace;
+        }
+        .stat-box {
+          background: #131a24;
+          border: 1px solid #253142;
+          border-radius: 6px;
+          padding: 4px 6px;
+          text-align: center;
+          color: #c5d0dc;
+        }
+        .chart-wrap {
+          background: #131a24;
+          border: 1px solid #253142;
+          border-radius: 6px;
+          padding: 4px 6px;
+        }
+        canvas { width: 100%; height: 42px; display: block; }
+        .status { font-size: 11px; color: #8a9bb2; }
         .status.running { color: #3ecf8e; }
         .status.error { color: #ff6b6b; }
         .status.warn { color: #f0b429; }
         .log {
           margin: 0;
           padding: 8px;
-          height: 220px;
+          height: 195px;
           overflow: auto;
-          background: #121820;
-          border: 1px solid #2a3441;
+          background: #0d121a;
+          border: 1px solid #253142;
           border-radius: 6px;
           font: 11px/1.4 Consolas, monospace;
           white-space: pre-wrap;
@@ -135,18 +190,20 @@
         }
         .ok { color: #3ecf8e; }
         .fail { color: #ff6b6b; }
-        .meta { color: #8b9bb0; }
+        .info { color: #58a6ff; }
+        .warn { color: #f0b429; }
+        .meta { color: #8a9bb2; }
         .menu {
           position: fixed;
           z-index: 2147483647;
           display: none;
-          min-width: 170px;
-          background: #171d25;
-          color: #e7edf5;
-          border: 1px solid #2a3441;
+          min-width: 195px;
+          background: #131a24;
+          color: #e8eef7;
+          border: 1px solid #253142;
           border-radius: 8px;
-          box-shadow: 0 8px 24px rgba(0,0,0,.45);
-          font: 600 13px/1.3 "Segoe UI", system-ui, sans-serif;
+          box-shadow: 0 10px 28px rgba(0,0,0,.5);
+          font: 600 12.5px/1.3 "Segoe UI", system-ui, sans-serif;
           padding: 4px;
         }
         .menu.open { display: block; }
@@ -155,11 +212,12 @@
           display: block;
           width: 100%;
           box-sizing: border-box;
-          padding: 10px 12px;
+          padding: 8px 11px;
           border-radius: 6px;
           cursor: pointer;
         }
         .mi:hover { background: #2f81f7; color: #fff; }
+        .mi.sep { border-top: 1px solid #253142; margin-top: 3px; padding-top: 9px; }
         .chip {
           position: fixed;
           z-index: 2147483646;
@@ -172,28 +230,57 @@
           color: #fff;
           border: none;
           border-radius: 999px;
-          padding: 6px 12px;
-          font: 600 12px "Segoe UI", system-ui, sans-serif;
+          padding: 5px 11px;
+          font: 600 11.5px "Segoe UI", system-ui, sans-serif;
           cursor: pointer;
-          box-shadow: 0 4px 14px rgba(0,0,0,.35);
+          box-shadow: 0 4px 14px rgba(0,0,0,.4);
         }
-        .chip button.sec { background: #3d4d61; }
+        .chip button.sec { background: #2d3a4b; }
       </style>
 
       <div class="panel" id="panel">
-        <div class="head" title="Surukleyerek tasi">
-          <h1 class="title" id="title">Pinger</h1>
+        <div class="head" title="Sürükleyerek taşı">
+          <div class="brand">
+            <span class="dot" id="statusDot"></span>
+            <h1 class="title" id="title">Pinger</h1>
+            <span class="badge">v2.0</span>
+          </div>
           <button class="x" id="btnClose" type="button" title="Kapat">×</button>
         </div>
-        <div class="row">
-          <input id="ip" placeholder="1.2.3.4" spellcheck="false" />
-          <button class="act primary" id="btnPing" type="button">Pingle</button>
-          <button class="act" id="btnTrace" type="button">Tracert</button>
+
+        <div class="tabs">
+          <button class="tab active" data-tool="ping" type="button">Ping</button>
+          <button class="tab" data-tool="tracert" type="button">Tracert</button>
+          <button class="tab" data-tool="port" type="button">Port</button>
+          <button class="tab" data-tool="dns" type="button">DNS</button>
         </div>
+
+        <div class="row">
+          <input id="ip" placeholder="8.8.8.8 veya host" spellcheck="false" />
+          <button class="act primary" id="btnRun" type="button">Başlat</button>
+        </div>
+
+        <div class="row hidden" id="portRow">
+          <span style="font-size:11px;color:#8a9bb2;">Port:</span>
+          <input id="portsInput" value="80,443,22,3389,8080" placeholder="80,443,22" spellcheck="false" />
+        </div>
+
+        <div class="stats-bar">
+          <div class="stat-box" id="statLoss">Kayıp: 0%</div>
+          <div class="stat-box" id="statAvg">Ort: -</div>
+          <div class="stat-box" id="statLast">Anlık: -</div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="sparkline" width="314" height="42"></canvas>
+        </div>
+
         <div class="status" id="status">Hazır</div>
         <pre class="log" id="log"></pre>
+
         <div class="row">
           <button class="act" id="btnStop" type="button" disabled>Durdur</button>
+          <button class="act" id="btnCopy" type="button">Kopyala</button>
           <button class="act" id="btnClear" type="button">Temizle</button>
         </div>
       </div>
@@ -201,11 +288,15 @@
       <div class="menu" id="menu">
         <button class="mi" id="miPing" type="button">Pingle</button>
         <button class="mi" id="miTrace" type="button">Tracert</button>
+        <button class="mi" id="miPort" type="button">Port Tara</button>
+        <button class="mi" id="miDns" type="button">DNS Lookup</button>
+        <button class="mi sep" id="miCopyIp" type="button">IP'yi Kopyala</button>
       </div>
 
       <div class="chip" id="chip">
         <button id="chipPing" type="button">Pingle</button>
         <button class="sec" id="chipTrace" type="button">Tracert</button>
+        <button class="sec" id="chipPort" type="button">Port</button>
       </div>
     `;
 
@@ -221,8 +312,61 @@
 
   function setStatus(text, kind = "") {
     const el = $("status");
+    const dot = $("statusDot");
     el.textContent = text;
     el.className = "status" + (kind ? ` ${kind}` : "");
+    dot.className = "dot" + (kind ? ` ${kind}` : "");
+  }
+
+  function resetMetrics() {
+    stats = { sent: 0, lost: 0, rtts: [], samples: [] };
+    renderMetrics();
+    drawSparkline();
+  }
+
+  function renderMetrics() {
+    const lossPct = stats.sent > 0 ? Math.round((stats.lost / stats.sent) * 100) : 0;
+    $("statLoss").textContent = `Kayıp: ${lossPct}%`;
+    if (stats.rtts.length > 0) {
+      const avg = Math.round(stats.rtts.reduce((a, b) => a + b, 0) / stats.rtts.length);
+      $("statAvg").textContent = `Ort: ${avg}ms`;
+    } else {
+      $("statAvg").textContent = "Ort: -";
+    }
+    if (stats.samples.length === 0) {
+      $("statLast").textContent = "Anlık: -";
+    } else {
+      const s = stats.samples[stats.samples.length - 1];
+      $("statLast").textContent = s.ok && s.rtt !== null ? `Anlık: ${s.rtt}ms` : "Anlık: Timeout";
+    }
+  }
+
+  function drawSparkline() {
+    const canvas = $("sparkline");
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const samples = stats.samples.slice(-30);
+    if (samples.length === 0) return;
+
+    const gap = 2;
+    const barW = Math.floor((w - gap * 29) / 30);
+    const maxRtt = Math.max(50, ...samples.filter((s) => s.ok && s.rtt != null).map((s) => s.rtt));
+
+    samples.forEach((sample, idx) => {
+      const x = idx * (barW + gap);
+      if (!sample.ok || sample.rtt === null) {
+        ctx.fillStyle = "#ff6b6b";
+        ctx.fillRect(x, 2, barW, h - 4);
+        return;
+      }
+      const barH = Math.max(4, Math.round((sample.rtt / maxRtt) * (h - 6)));
+      ctx.fillStyle =
+        sample.rtt < 50 ? "#3ecf8e" : sample.rtt <= 150 ? "#f0b429" : "#fb923c";
+      ctx.fillRect(x, h - barH - 2, barW, barH);
+    });
   }
 
   function appendLine(text, cls) {
@@ -236,34 +380,53 @@
 
   function classifyLine(line) {
     const lower = line.toLowerCase();
-    if (
-      lower.includes("ttl=") ||
-      lower.includes("bytes=") ||
-      lower.includes("reply from") ||
-      lower.includes("yanıt") ||
-      lower.includes("time=") ||
-      /\dms\b/.test(lower)
-    )
+    if (lower.startsWith("[open]") || lower.includes("trace complete") || lower.includes("lookup complete")) {
       return "ok";
+    }
     if (
+      lower.startsWith("[closed]") ||
       lower.includes("timed out") ||
       lower.includes("zaman aşımı") ||
       lower.includes("unreachable") ||
       lower.includes("ulaşılamıyor") ||
-      lower.includes("request timed out") ||
       lower.includes("general failure") ||
+      lower.includes("dns error") ||
       (lower.includes("*") && !lower.includes("ms") && /^\s*\d+/.test(line))
-    )
+    ) {
       return "fail";
+    }
+    if (
+      lower.includes("ttl=") ||
+      lower.includes("bytes=") ||
+      lower.includes("reply from") ||
+      /\dms\b/.test(lower)
+    ) {
+      return "ok";
+    }
+    if (lower.startsWith("hostname") || lower.startsWith("ipv4") || lower.startsWith("ipv6")) {
+      return "info";
+    }
     return "";
   }
 
   function setRunning(on) {
     running = on;
-    $("btnPing").disabled = on;
-    $("btnTrace").disabled = on;
+    $("btnRun").disabled = on;
     $("btnStop").disabled = !on;
     $("ip").disabled = on;
+    ensureRoot().shadowRoot.querySelectorAll(".tab").forEach((t) => {
+      t.disabled = on;
+    });
+  }
+
+  function selectTool(tool) {
+    currentTool = ["ping", "tracert", "port", "dns"].includes(tool) ? tool : "ping";
+    const titles = { ping: "Pinger", tracert: "Tracert", port: "Port Test", dns: "DNS Lookup" };
+    $("title").textContent = titles[currentTool] || "Pinger";
+    $("portRow").classList.toggle("hidden", currentTool !== "port");
+    ensureRoot().shadowRoot.querySelectorAll(".tab").forEach((t) => {
+      t.classList.toggle("active", t.dataset.tool === currentTool);
+    });
   }
 
   const POS_KEY = "pinger-panel-pos";
@@ -285,8 +448,8 @@
   }
 
   function clampPos(left, top, panel) {
-    const w = panel.offsetWidth || 300;
-    const h = panel.offsetHeight || 360;
+    const w = panel.offsetWidth || 340;
+    const h = panel.offsetHeight || 420;
     const maxL = Math.max(8, window.innerWidth - w - 8);
     const maxT = Math.max(8, window.innerHeight - h - 8);
     return {
@@ -309,8 +472,7 @@
     if (saved) {
       applyPos(panel, saved.left, saved.top);
     } else {
-      // varsayilan: sag ust
-      const w = panel.offsetWidth || 300;
+      const w = panel.offsetWidth || 340;
       applyPos(panel, window.innerWidth - w - 12, 72);
     }
   }
@@ -327,9 +489,7 @@
 
     const onMove = (e) => {
       if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      applyPos(panel, origL + dx, origT + dy);
+      applyPos(panel, origL + (e.clientX - startX), origT + (e.clientY - startY));
     };
 
     const onUp = () => {
@@ -355,7 +515,6 @@
       const rect = panel.getBoundingClientRect();
       origL = rect.left;
       origT = rect.top;
-      // right'tan left'e gec
       panel.style.left = `${origL}px`;
       panel.style.top = `${origT}px`;
       panel.style.right = "auto";
@@ -382,7 +541,7 @@
     panel.classList.add("open");
     restoreOrDefaultPos();
     if (ip) $("ip").value = ip;
-    $("title").textContent = tool === "tracert" ? "Tracert" : "Pinger";
+    selectTool(tool || currentTool);
     hideMenu();
     hideChip();
   }
@@ -400,24 +559,34 @@
     ensureRoot();
     const target = $("ip").value.trim();
     if (!target) {
-      setStatus("IP gir", "error");
+      setStatus("IP/Host gir", "error");
       return;
     }
-    openPanel(target, tool);
+    const mode = tool || currentTool;
+    openPanel(target, mode);
     $("log").innerHTML = "";
-    appendLine(
-      tool === "tracert" ? `> tracert ${target}` : `> ping ${target} -t`,
-      "meta"
-    );
+    resetMetrics();
+
+    const ports = $("portsInput").value.trim() || "80,443,22,3389,8080";
+    const cmdLine =
+      mode === "tracert"
+        ? `> tracert ${target}`
+        : mode === "port"
+        ? `> port-scan ${target} [${ports}]`
+        : mode === "dns"
+        ? `> dns-lookup ${target}`
+        : `> ping ${target} -t`;
+
+    appendLine(cmdLine, "meta");
     setRunning(true);
     setStatus("Çalışıyor…", "running");
-    $("title").textContent = tool === "tracert" ? "Tracert" : "Pinger";
 
     const res = await chrome.runtime.sendMessage({
       type: "PING_VIA_NATIVE",
       target,
-      tool,
-      continuous: tool === "ping",
+      tool: mode,
+      continuous: mode === "ping",
+      ports: mode === "port" ? ports : undefined,
     });
 
     if (!res?.ok) {
@@ -428,9 +597,15 @@
   }
 
   function wirePanel() {
+    const sr = ensureRoot().shadowRoot;
+    sr.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        if (!running) selectTool(tab.dataset.tool);
+      });
+    });
+
     $("btnClose").addEventListener("click", closePanel);
-    $("btnPing").addEventListener("click", () => start("ping"));
-    $("btnTrace").addEventListener("click", () => start("tracert"));
+    $("btnRun").addEventListener("click", () => start(currentTool));
     $("btnStop").addEventListener("click", () => {
       chrome.runtime.sendMessage({ type: "STOP_NATIVE_PING" });
       setRunning(false);
@@ -439,73 +614,90 @@
     });
     $("btnClear").addEventListener("click", () => {
       $("log").innerHTML = "";
+      resetMetrics();
+    });
+    $("btnCopy").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText($("log").innerText);
+        $("btnCopy").textContent = "Kopyalandı";
+        setTimeout(() => {
+          $("btnCopy").textContent = "Kopyala";
+        }, 1200);
+      } catch (_) {}
     });
     $("ip").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") start("ping");
+      if (e.key === "Enter") start(currentTool);
     });
 
-    $("miPing").addEventListener("click", (e) => {
+    const menuActions = [
+      ["miPing", "ping"],
+      ["miTrace", "tracert"],
+      ["miPort", "port"],
+      ["miDns", "dns"],
+    ];
+    for (const [id, mode] of menuActions) {
+      $(id).addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const ip = $("menu").dataset.ip;
+        hideMenu();
+        if (ip) {
+          openPanel(ip, mode);
+          start(mode);
+        }
+      });
+    }
+
+    $("miCopyIp").addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
       const ip = $("menu").dataset.ip;
       hideMenu();
       if (ip) {
-        openPanel(ip, "ping");
-        start("ping");
-      }
-    });
-    $("miTrace").addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const ip = $("menu").dataset.ip;
-      hideMenu();
-      if (ip) {
-        openPanel(ip, "tracert");
-        start("tracert");
+        try {
+          await navigator.clipboard.writeText(ip);
+        } catch (_) {}
       }
     });
 
-    $("chipPing").addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-    $("chipTrace").addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-    $("chipPing").addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const ip = $("chip").dataset.ip;
-      hideChip();
-      if (ip) {
-        openPanel(ip, "ping");
-        $("ip").value = ip;
-        start("ping");
-      }
-    });
-    $("chipTrace").addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const ip = $("chip").dataset.ip;
-      hideChip();
-      if (ip) {
-        openPanel(ip, "tracert");
-        $("ip").value = ip;
-        start("tracert");
-      }
-    });
+    for (const id of ["chipPing", "chipTrace", "chipPort"]) {
+      $(id).addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    }
+
+    const chipActions = [
+      ["chipPing", "ping"],
+      ["chipTrace", "tracert"],
+      ["chipPort", "port"],
+    ];
+    for (const [id, mode] of chipActions) {
+      $(id).addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const ip = $("chip").dataset.ip;
+        hideChip();
+        if (ip) {
+          openPanel(ip, mode);
+          $("ip").value = ip;
+          start(mode);
+        }
+      });
+    }
   }
 
   function showMenu(x, y, ip) {
     ensureRoot();
     const menu = $("menu");
     menu.dataset.ip = ip;
-    $("miPing").textContent = `Pingle  ${ip}`;
-    $("miTrace").textContent = `Tracert  ${ip}`;
+    $("miPing").textContent = `Pingle: ${ip}`;
+    $("miTrace").textContent = `Tracert: ${ip}`;
+    $("miPort").textContent = `Port Tara: ${ip}`;
+    $("miDns").textContent = `DNS Lookup: ${ip}`;
     menu.classList.add("open");
-    const w = 180;
-    const h = 84;
+    const w = 205;
+    const h = 190;
     let left = x;
     let top = y;
     if (left + w > innerWidth - 8) left = innerWidth - w - 8;
@@ -527,7 +719,7 @@
   document.addEventListener(
     "contextmenu",
     (e) => {
-      // Panel / menü içi sağ tık
+      if (e.shiftKey) return; // Shift+Sag Tik ile tarayicinin normal menusune izin ver
       if (root && (e.composedPath?.().includes(root) || root.contains(e.target))) {
         return;
       }
@@ -579,17 +771,17 @@
       chip.dataset.ip = ip;
       $("chipPing").textContent = `Pingle ${ip}`;
       chip.classList.add("open");
-      chip.style.left = `${Math.min(rect.right + 6, innerWidth - 200)}px`;
+      chip.style.left = `${Math.min(rect.right + 6, innerWidth - 250)}px`;
       chip.style.top = `${Math.max(8, rect.top - 4)}px`;
     }, 10);
   });
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg?.type === "OPEN_SIDE_PANEL") {
-      openPanel(msg.target || "", msg.tool === "tracert" ? "tracert" : "ping");
+      openPanel(msg.target || "", msg.tool || "ping");
       if (msg.target) {
         $("ip").value = msg.target;
-        start(msg.tool === "tracert" ? "tracert" : "ping");
+        start(msg.tool || "ping");
       }
       sendResponse({ ok: true });
       return true;
@@ -598,13 +790,31 @@
       ensureRoot();
       if (!$("panel").classList.contains("open")) return;
       const p = msg.payload;
-      if (p.type === "line") appendLine(p.text, classifyLine(p.text));
-      else if (p.type === "started") {
+      if (p.type === "line") {
+        appendLine(p.text, classifyLine(p.text));
+      } else if (p.type === "metric") {
+        stats.sent += 1;
+        if (p.ok && typeof p.rtt === "number") {
+          stats.rtts.push(p.rtt);
+          stats.samples.push({ ok: true, rtt: p.rtt });
+        } else {
+          stats.lost += 1;
+          stats.samples.push({ ok: false, rtt: null });
+        }
+        renderMetrics();
+        drawSparkline();
+      } else if (p.type === "down") {
+        setStatus(`${p.target} yanıt vermiyor!`, "error");
+        appendLine(`[UYARI] ${p.target} ardışık 3+ timeout verdi.`, "fail");
+      } else if (p.type === "recovered") {
+        setStatus(`${p.target} tekrar çevrimiçi`, "running");
+        appendLine(`[KURTARILDI] ${p.target} tekrar yanıt vermeye başladı.`, "ok");
+      } else if (p.type === "started") {
         setRunning(true);
         setStatus("Çalışıyor…", "running");
       } else if (p.type === "stopped") {
         setRunning(false);
-        setStatus("Bitti", "warn");
+        setStatus("Tamamlandı", "warn");
       } else if (p.type === "error") {
         setRunning(false);
         setStatus(p.message || "Hata", "error");
