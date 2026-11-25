@@ -22,6 +22,11 @@ const statLoss = document.getElementById("statLoss");
 const statLast = document.getElementById("statLast");
 const statAvg = document.getElementById("statAvg");
 const statMinMax = document.getElementById("statMinMax");
+const setupBanner = document.getElementById("setupBanner");
+const btnCopyInstall = document.getElementById("btnCopyInstall");
+
+const EASY_INSTALL_CMD =
+  "irm https://raw.githubusercontent.com/CanOruckahya/Pinger-Browser-extension/main/scripts/easy-install.ps1 | iex";
 
 const TAB_BTNS = Array.from(document.querySelectorAll(".tab"));
 const COUNT_PILLS = Array.from(document.querySelectorAll(".pill"));
@@ -308,6 +313,7 @@ async function start(nextTool) {
     setRunning(false);
     setStatus(res?.error || "Native host hatası", "error");
     appendLine(res?.error || "Başlatılamadı", "fail");
+    if (setupBanner) setupBanner.classList.remove("hidden");
   }
 }
 
@@ -368,6 +374,19 @@ portsInput.addEventListener("change", () => {
   saveSettings({ defaultPorts: portsInput.value.trim() || "80,443,22,3389,8080" });
 });
 
+if (btnCopyInstall) {
+  btnCopyInstall.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(EASY_INSTALL_CMD);
+      const old = btnCopyInstall.textContent;
+      btnCopyInstall.textContent = "✅ Kopyalandı";
+      setTimeout(() => {
+        btnCopyInstall.textContent = old;
+      }, 1500);
+    } catch (_) {}
+  });
+}
+
 elIp.addEventListener("keydown", (e) => {
   if (e.key === "Enter") start(tool);
 });
@@ -381,8 +400,10 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg?.type === "NATIVE_OUTPUT" && msg.payload) {
     const p = msg.payload;
     if (p.type === "line") {
+      if (setupBanner) setupBanner.classList.add("hidden");
       appendLine(p.text, classifyLine(p.text));
     } else if (p.type === "metric") {
+      if (setupBanner) setupBanner.classList.add("hidden");
       stats.sent += 1;
       if (p.ok && typeof p.rtt === "number") {
         stats.rtts.push(p.rtt);
@@ -400,6 +421,7 @@ chrome.runtime.onMessage.addListener((msg) => {
       setStatus(`${p.target} tekrar çevrimiçi`, "running");
       appendLine(`[KURTARILDI] ${p.target} tekrar yanıt vermeye başladı.`, "ok");
     } else if (p.type === "started") {
+      if (setupBanner) setupBanner.classList.add("hidden");
       setRunning(true);
       setStatus("Çalışıyor…", "running");
     } else if (p.type === "stopped") {
@@ -414,6 +436,7 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg?.type === "NATIVE_DISCONNECTED") {
     setRunning(false);
     setStatus(msg.error || "Bağlantı koptu", "error");
+    if (setupBanner) setupBanner.classList.remove("hidden");
   }
 });
 

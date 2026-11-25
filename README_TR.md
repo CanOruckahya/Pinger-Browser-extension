@@ -61,7 +61,29 @@ flowchart LR
     B -->|3+ timeout / kurtarma| G["Windows Toast & Tarayıcı Bildirimi"]
 ```
 
-## Kurulum
+## Kolay Kurulum (Easy Install — ID Kopyalamadan)
+
+[`Pinger/extension/manifest.json`](Pinger/extension/manifest.json) içinde sabit genel anahtar (`"key"`) bulunduğu için Chrome, Edge ve Brave her zaman sabit `gfepdmddjmpndndaacmopoppcpkcdfjb` kimliğini kullanır (Firefox için sabit `pinger@local`).
+
+### Seçenek 1 — Tek Satır PowerShell Kurulumu (Önerilen)
+
+**PowerShell**'de şu komutu çalıştırın (Pinger'ı `%LOCALAPPDATA%\Pinger` dizinine indirir, Chrome/Edge/Brave/Firefox kayıtlarını otomatik yapar ve `extension` yolunu panoya kopyalar):
+
+```powershell
+irm https://raw.githubusercontent.com/CanOruckahya/Pinger-Browser-extension/main/scripts/easy-install.ps1 | iex
+```
+
+Ardından tarayıcıda `chrome://extensions` veya `edge://extensions` açın → **Geliştirici modu** → **Paketlenmemiş öğe yükle** → `Ctrl+V`!
+
+### Seçenek 2 — GitHub Releases ZIP + `EasyInstall.bat`
+
+1. [Releases](https://github.com/CanOruckahya/Pinger-Browser-extension/releases) sayfasından **`Pinger-v2.0.0-EasyInstall.zip`** paketini indirip çıkarın.
+2. [`Pinger/EasyInstall.bat`](Pinger/EasyInstall.bat) dosyasına çift tıklayın — soru sormadan tüm tarayıcıları kaydeder ve `extension` yolunu panoya kopyalar.
+3. `chrome://extensions` veya `edge://extensions` → **Geliştirici modu** → **Paketlenmemiş öğe yükle** → `Ctrl+V`.
+
+---
+
+## Manuel Kurulum
 
 ### 1. Tarayıcı Eklentisini Yükle
 **Chrome / Edge / Brave**

@@ -2,7 +2,13 @@
 
 Tarayıcıdan ayrılmadan canlı **Ping**, **Tracert**, **TCP Port Taraması** ve **DNS Lookup** yapan Manifest V3 eklentisi. Detaylı mimari ve görseller için kök dizindeki [README_TR.md](../README_TR.md) dosyasına bakabilirsiniz.
 
-## 1) Eklentiyi Yükle
+## En Kolay Kurulum (Soru Sormayan — Sabit ID)
+
+1. **`EasyInstall.bat`** dosyasına çift tıklayın (sabit Extension ID `gfepdmddjmpndndaacmopoppcpkcdfjb` ile Chrome/Edge/Brave/Firefox kayıtlarını otomatik yapar ve `extension` klasör yolunu panoya kopyalar).
+2. Tarayıcınızda `chrome://extensions` veya `edge://extensions` açın → **Geliştirici modu** → **Paketlenmemiş öğe yükle** → `Ctrl+V` → Klasör Seç!
+   *(Tek satır PowerShell ile kurmak için: `irm https://raw.githubusercontent.com/CanOruckahya/Pinger-Browser-extension/main/scripts/easy-install.ps1 | iex`)*
+
+## Manuel Kurulum (İsteğe Bağlı)
 
 **Chrome / Edge / Brave**
 1. `chrome://extensions`, `edge://extensions` veya `brave://extensions` açın

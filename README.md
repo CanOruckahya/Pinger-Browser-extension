@@ -61,7 +61,29 @@ flowchart LR
     B -->|3+ timeouts / recovery| G["Windows Toast & Browser Notification"]
 ```
 
-## Installation
+## Easy Install (No Extension ID Copy-Paste)
+
+Because [`Pinger/extension/manifest.json`](Pinger/extension/manifest.json) ships with a fixed public `"key"`, Chromium browsers always assign the deterministic Extension ID `gfepdmddjmpndndaacmopoppcpkcdfjb` (and Firefox uses `pinger@local`).
+
+### Option 1 — One-Line PowerShell Easy Install (Recommended)
+
+Run this in **PowerShell** (downloads Pinger to `%LOCALAPPDATA%\Pinger`, registers Chrome/Edge/Brave/Firefox hosts automatically, and copies the `extension` path to your clipboard):
+
+```powershell
+irm https://raw.githubusercontent.com/CanOruckahya/Pinger-Browser-extension/main/scripts/easy-install.ps1 | iex
+```
+
+Then open `chrome://extensions` or `edge://extensions` → enable **Developer mode** → **Load unpacked** → press `Ctrl+V`!
+
+### Option 2 — GitHub Releases ZIP + `EasyInstall.bat`
+
+1. Download **`Pinger-v2.0.0-EasyInstall.zip`** from the [Releases](https://github.com/CanOruckahya/Pinger-Browser-extension/releases) page and extract it.
+2. Double-click [`Pinger/EasyInstall.bat`](Pinger/EasyInstall.bat) — no prompts, registers all browsers automatically and copies the `extension` path to your clipboard.
+3. Open `chrome://extensions` or `edge://extensions` → **Developer mode** → **Load unpacked** → press `Ctrl+V`.
+
+---
+
+## Manual Installation
 
 ### 1. Load the Browser Extension
 **Chrome / Edge / Brave**

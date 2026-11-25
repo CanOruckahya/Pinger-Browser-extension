@@ -14,6 +14,7 @@ set "JSON_CHROME=%HOSTDIR%com.pinger.host.json"
 set "JSON_FIREFOX=%HOSTDIR%com.pinger.host.firefox.json"
 set "IDFILE=%HOSTDIR%last-extension-id.txt"
 set "FF_ID=pinger@local"
+set "FIXED_ID=gfepdmddjmpndndaacmopoppcpkcdfjb"
 set "LOGFILE=%ROOT%install.log"
 
 echo ---------------------------------------------------->>"%LOGFILE%"
@@ -44,13 +45,15 @@ echo     Gecici eklenti yukle -^> extension\manifest.json
 echo     Firefox ID sabit: %FF_ID%
 echo.
 
-REM --- ID parametresi var mi? (install.bat <ID>) ---
+REM --- ID parametresi var mi? (install.bat <ID>) Yoksa sabit ID kullan ---
 set "CHROME_ID=%~1"
 if not "!CHROME_ID!"=="" (
   echo [INFO] ID argumanla alindi: !CHROME_ID!
   echo [%date% %time%] [INFO] ID argumanla alindi: !CHROME_ID!>>"%LOGFILE%"
 ) else (
-  set /p "CHROME_ID=Chrome/Edge Extension ID yapistir: "
+  set "CHROME_ID=%FIXED_ID%"
+  echo [INFO] Sabit Extension ID kullaniliyor: !CHROME_ID!
+  echo [%date% %time%] [INFO] Sabit Extension ID kullaniliyor: !CHROME_ID!>>"%LOGFILE%"
 )
 
 if "%CHROME_ID%"=="" (

@@ -7,7 +7,7 @@
   .\install-host.ps1 -ExtensionId "abcdefghijklmnopqrstuvwxyzabcdef"
 #>
 param(
-  [string]$ExtensionId = ""
+  [string]$ExtensionId = "gfepdmddjmpndndaacmopoppcpkcdfjb"
 )
 
 $ErrorActionPreference = "Stop"

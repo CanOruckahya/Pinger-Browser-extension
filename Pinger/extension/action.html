@@ -47,6 +47,14 @@
 
   <div class="recent-row hidden" id="recentRow"></div>
 
+  <div class="setup-banner hidden" id="setupBanner">
+    <div class="setup-text">
+      Native Host kurulu değil. Tek satırla kurmak için kopyalayıp PowerShell'de çalıştır:
+    </div>
+    <code class="setup-cmd">irm https://raw.githubusercontent.com/CanOruckahya/Pinger-Browser-extension/main/scripts/easy-install.ps1 | iex</code>
+    <button id="btnCopyInstall" class="mini setup-btn" type="button">📋 Kurulum Komutunu Kopyala</button>
+  </div>
+
   <section class="stats" aria-label="Canlı İstatistikler">
     <div class="stat">
       <span class="stat-k">Gönderilen / Kayıp</span>

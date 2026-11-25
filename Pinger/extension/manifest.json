@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Pinger",
   "version": "2.0.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsdvO+H8yV2RaZ0fL1nh2Gqd+0m5BdyW6k+S8C3ypSQ7+FEDtS+I3tiIKBhJYTfBTK2LWgx2JRS24NYurWVgEAWbtWa0qVDtQwuNRJD7xE9Rh8/7H+Q8C0ozpeiwrIzKTmajTRTIsmqEXpaJVn2Ugh7Dl2gHlUfNOvTWBvlaT747PkdvrxEE5WqohAQ0kCqbqXBTrMLwVBdwEzbCvXmb/6rqRnxBg5aC+/Ndk1NatpJ/6NBXkullZdgS9aZuwUQXL4Gj5Wwpvx+3sHCKNI8OZIFQtTk4+uuSvu+2ForoV4s732DqjdtjqJUhpxi5iIT+9bjKcxx4E0nwgUrt88JcDFQIDAQAB",
   "description": "IP/Host seç → Canlı grafikli Ping, Tracert, Port Testi & DNS Lookup. Kesinti ve geri dönüş bildirimleri.",
   "permissions": [
     "contextMenus",
