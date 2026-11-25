@@ -75,7 +75,10 @@ Pick either method *(no Extension ID copy-pasting needed)*:
 ### Step 2 — Add to Browser (Chrome / Edge / Brave)
 1. Open `chrome://extensions` *(or `edge://extensions`)*.
 2. Turn on **Developer mode** (top right).
-3. Click **Load unpacked** → press **`Ctrl + V`** → click **Select Folder** *(the folder path was copied in Step 1)*.
+3. Click **Load unpacked**.
+4. In the folder picker window, select the **`extension`** folder *(the path was already copied in Step 1 — just press `Ctrl + V` → `Enter` → **Select Folder**)*:
+   - If installed via PowerShell: `%LOCALAPPDATA%\Pinger\extension`
+   - If installed via ZIP: the extracted **`Pinger\extension`** folder *(the one containing `manifest.json`)*
 
 ### Step 3 — Use
 Refresh any webpage (`F5`), select or right-click an IP/host, and pick **Pingle**, **Tracert**, **Port Tara**, or **DNS Lookup**!

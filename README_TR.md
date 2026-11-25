@@ -75,7 +75,10 @@ Aşağıdaki iki yöntemden birini seçin *(hiçbir ID kopyalamanız gerekmez)*:
 ### 2. Adım — Tarayıcıya Ekle (Chrome / Edge / Brave)
 1. Adres çubuğuna `chrome://extensions` *(veya `edge://extensions`)* yazıp açın.
 2. Sağ üstten **Geliştirici modu**nu açın.
-3. **Paketlenmemiş öğe yükle** butonuna tıklayın → açılan pencerede **`Ctrl + V`** yapıp **Klasör Seç**'e basın *(klasör yolu 1. adımda otomatik kopyalandı)*.
+3. **Paketlenmemiş öğe yükle** butonuna tıklayın.
+4. Açılan pencerede **`extension`** klasörünü seçin *(yol 1. adımda panoya kopyalandı: doğrudan `Ctrl + V` → `Enter` → **Klasör Seç** yapabilirsiniz)*:
+   - PowerShell ile kurduysanız: `%LOCALAPPDATA%\Pinger\extension`
+   - ZIP ile indirdiyseniz: çıkardığınız **`Pinger\extension`** klasörü *(içinde `manifest.json` bulunan klasör)*
 
 ### 3. Adım — Kullan
 Açık web sayfanızı `F5` ile yenileyin. Herhangi bir IP'yi seçin veya sağ tıklayıp **Pingle**, **Tracert**, **Port Tara** ya da **DNS Lookup** deyin!

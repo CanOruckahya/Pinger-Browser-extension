@@ -8,7 +8,8 @@ Tarayıcıdan ayrılmadan canlı **Ping**, **Tracert**, **TCP Port Taraması** v
 ## 2. Adım — Tarayıcıya Ekle (Chrome / Edge / Brave)
 1. Adres çubuğuna `chrome://extensions` *(veya `edge://extensions`)* yazıp açın.
 2. Sağ üstten **Geliştirici modu**nu açın.
-3. **Paketlenmemiş öğe yükle** → açılan pencerede **`Ctrl + V`** → **Klasör Seç**.
+3. **Paketlenmemiş öğe yükle** → açılan pencerede **`Pinger\extension`** klasörünü *(içinde `manifest.json` bulunan klasör)* seçin.
+   - *(1. adımda yol otomatik panoya kopyalandığı için açılan pencerede doğrudan **`Ctrl + V` → `Enter` → Klasör Seç** yapabilirsiniz.)*
 
 ## 3. Adım — Kullan
 Açık web sayfanızı `F5` ile yenileyin, herhangi bir IP'yi seçip veya sağ tıklayıp **Pingle / Tracert / Port Tara / DNS Lookup** deyin!

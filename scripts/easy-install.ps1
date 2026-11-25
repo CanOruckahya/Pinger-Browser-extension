@@ -96,7 +96,8 @@ try {
   Write-Host "Son Adim (yalnizca ilk kurulumda 1 kez):" -ForegroundColor White
   Write-Host "  1) Chrome/Edge/Brave icinde chrome://extensions veya edge://extensions acin"
   Write-Host "  2) Sag ustten 'Gelistirici modu'nu acin"
-  Write-Host "  3) 'Paketlenmemis oge yukle' -> Ctrl+V -> Klasor Sec"
+  Write-Host "  3) 'Paketlenmemis oge yukle' -> acilan pencerede 'extension' klasorunu secin:"
+  Write-Host "     (Yol panoya kopyalandi: Ctrl+V -> Enter -> Klasor Sec, veya elle $ExtDir)" -ForegroundColor Cyan
   Write-Host "  (Firefox: about:debugging#/runtime/this-firefox -> $ExtDir\manifest.json)"
   Write-Host ""
 }

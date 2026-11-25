@@ -81,7 +81,8 @@ echo.
 echo  Son Adim (ilk seferde 1 kez):
 echo   1^) Chrome / Edge / Brave icinde chrome://extensions veya edge://extensions acin
 echo   2^) Sag ustten "Gelistirici modu"nu acin
-echo   3^) "Paketlenmemis oge yukle" -^> Ctrl+V -^> Klasor Sec
+echo   3^) "Paketlenmemis oge yukle" -^> acilan pencerede "extension" klasorunu secin:
+echo       (Yol panoda: Ctrl+V -^> Enter -^> Klasor Sec, veya elle %EXTDIR%)
 echo   (Firefox icin about:debugging#/runtime/this-firefox -^> extension\manifest.json)
 echo.
 echo [%date% %time%] EasyInstall.bat finished>>"%LOGFILE%"
